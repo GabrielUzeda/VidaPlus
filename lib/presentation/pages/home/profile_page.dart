@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../controllers/auth_controller.dart';
+import '../../controllers/habits_controller.dart';
 
 // Página de perfil do usuário
 class ProfilePage extends StatefulWidget {
@@ -238,73 +239,81 @@ class _ProfilePageState extends State<ProfilePage> {
     return SliverToBoxAdapter(
       child: Container(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // Estatísticas simples
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+        child: Consumer<HabitsController>(
+          builder: (context, habitsController, _) {
+            final todayStats = habitsController.getTodayStats();
+            final totalHabits = todayStats['totalHabits'] as int;
+            final completedHabits = todayStats['completedHabits'] as int;
+            
+            return Column(
+              children: [
+                // Estatísticas simples
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
                       children: [
-                        _buildStatItem('Dias Ativos', '${DateTime.now().difference(user?.createdAt ?? DateTime.now()).inDays}'),
-                        _buildStatItem('Hábitos', '5'), // Placeholder
-                        _buildStatItem('Sequência', '7'), // Placeholder
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatItem('Dias Ativos', '${DateTime.now().difference(user?.createdAt ?? DateTime.now()).inDays}'),
+                            _buildStatItem('Hábitos', '$totalHabits'),
+                            _buildStatItem('Concluídos', '$completedHabits'),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-            // Opções do perfil
-            _buildProfileOption(
-              icon: Icons.notifications,
-              title: 'Notificações',
-              subtitle: 'Gerenciar lembretes',
-              onTap: _showNotificationSettings,
-            ),
-            
-            _buildProfileOption(
-              icon: Icons.dark_mode,
-              title: 'Modo Escuro',
-              subtitle: 'Seguindo sistema',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Modo escuro ativo automaticamente!')),
-                );
-              },
-            ),
-            
-            _buildProfileOption(
-              icon: Icons.info,
-              title: 'Sobre o App',
-              subtitle: 'Vida+ v1.0.0',
-              onTap: _showAboutDialog,
-            ),
-
-            const SizedBox(height: 20),
-
-            // Botão de logout
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _showLogoutDialog(authController),
-                icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text(
-                  'Sair da Conta',
-                  style: TextStyle(color: Colors.red),
+                // Opções do perfil
+                _buildProfileOption(
+                  icon: Icons.notifications,
+                  title: 'Notificações',
+                  subtitle: 'Gerenciar lembretes',
+                  onTap: _showNotificationSettings,
                 ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red),
+                
+                _buildProfileOption(
+                  icon: Icons.dark_mode,
+                  title: 'Modo Escuro',
+                  subtitle: 'Seguindo sistema',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Modo escuro ativo automaticamente!')),
+                    );
+                  },
                 ),
-              ),
-            ),
-          ],
+                
+                _buildProfileOption(
+                  icon: Icons.info,
+                  title: 'Sobre o App',
+                  subtitle: 'Vida+ v1.0.0',
+                  onTap: _showAboutDialog,
+                ),
+
+                const SizedBox(height: 20),
+
+                // Botão de logout
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showLogoutDialog(authController),
+                    icon: const Icon(Icons.logout, color: Colors.red),
+                    label: const Text(
+                      'Sair da Conta',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

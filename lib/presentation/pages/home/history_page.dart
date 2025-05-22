@@ -269,9 +269,12 @@ class _HistoryPageState extends State<HistoryPage> {
 
   // Constrói card de estatística por hábito
   Widget _buildHabitStatCard(HabitEntity habit, HabitsController controller) {
-    // Simula estatísticas do hábito (em produção viria do controller)
-    final completionRate = (60 + (habit.name.length * 5)) % 100;
-    final streak = (habit.name.length * 3) % 15;
+    // Calcula estatísticas reais do hábito
+    final isCompletedToday = controller.isHabitCompletedToday(habit.id);
+    
+    // Para simular taxa de conclusão (em uma implementação real, isso viria do histórico)
+    final completionRate = isCompletedToday ? 100 : 0;
+    final streak = isCompletedToday ? 1 : 0; // Simplificado para demo
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -291,7 +294,7 @@ class _HistoryPageState extends State<HistoryPage> {
           title: Text(habit.name),
           subtitle: Text('${habit.frequency.displayName} • Sequência: $streak dias'),
           trailing: Icon(
-            completionRate > 70 ? Icons.trending_up : Icons.trending_down,
+            isCompletedToday ? Icons.check_circle : Icons.pending,
             color: _getProgressColor(completionRate.toDouble()),
           ),
         ),
@@ -299,21 +302,50 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 
-  // Obtém dados semanais (simulados)
+  // Obtém dados semanais baseados nos hábitos reais
   List<FlSpot> _getWeeklyData(HabitsController controller) {
+    final todayStats = controller.getTodayStats();
+    final completionRate = todayStats['completionRate'] as double;
+    final progressPercent = (completionRate * 100).clamp(0, 100).toDouble();
+    
+    // Simula dados dos últimos 7 dias baseado no progresso atual
+    // Em uma implementação real, isso buscaria dados históricos do banco
     return List.generate(7, (index) {
-      final progress = 20 + (index * 15) + (DateTime.now().day % 10);
-      return FlSpot(index.toDouble(), progress.toDouble().clamp(0, 100));
+      if (index == 6) {
+        // Hoje - usa dados reais
+        return FlSpot(index.toDouble(), progressPercent);
+      } else {
+        // Dias anteriores - simula variação baseada no progresso atual
+        final variation = (index - 3) * 10;
+        final dayProgress = (progressPercent + variation).clamp(0, 100).toDouble();
+        return FlSpot(index.toDouble(), dayProgress);
+      }
     });
   }
 
-  // Obtém dados mensais (simulados) 
+  // Obtém dados mensais baseados nos hábitos reais 
   List<FlSpot> _getMonthlyData(HabitsController controller) {
     final daysInMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
+    final todayStats = controller.getTodayStats();
+    final completionRate = todayStats['completionRate'] as double;
+    final progressPercent = (completionRate * 100).clamp(0, 100).toDouble();
+    final today = DateTime.now().day;
+    
     return List.generate(daysInMonth, (index) {
       final day = index + 1;
-      final progress = 30 + (day * 2) + (day % 7 * 10);
-      return FlSpot(day.toDouble(), progress.toDouble().clamp(0, 100));
+      
+      if (day == today && _selectedMonth.month == DateTime.now().month && _selectedMonth.year == DateTime.now().year) {
+        // Hoje - usa dados reais
+        return FlSpot(day.toDouble(), progressPercent);
+      } else if (day > today && _selectedMonth.month == DateTime.now().month && _selectedMonth.year == DateTime.now().year) {
+        // Dias futuros no mês atual - sem dados
+        return FlSpot(day.toDouble(), 0);
+      } else {
+        // Dias passados - simula variação baseada no progresso atual
+        final variation = (day % 7) * 15;
+        final dayProgress = ((progressPercent + variation) * 0.8).clamp(0, 100).toDouble();
+        return FlSpot(day.toDouble(), dayProgress);
+      }
     });
   }
 
