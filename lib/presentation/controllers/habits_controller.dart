@@ -68,7 +68,7 @@ class HabitsController extends ChangeNotifier {
         date: today,
       );
     } catch (e) {
-      print('Erro ao carregar check-ins de hoje: $e');
+      // Silently handle error - check-ins remain empty
     }
   }
 

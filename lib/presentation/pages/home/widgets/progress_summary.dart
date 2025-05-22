@@ -70,7 +70,7 @@ class ProgressSummary extends StatelessWidget {
                       child: CircularProgressIndicator(
                         value: completionRate,
                         strokeWidth: 8,
-                        backgroundColor: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                        backgroundColor: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           Theme.of(context).colorScheme.primary,
                         ),
@@ -134,7 +134,7 @@ class ProgressSummary extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -176,10 +176,10 @@ class ProgressSummary extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
+                            decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
           child: Icon(
             icon,
             color: color,
@@ -197,7 +197,7 @@ class ProgressSummary extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
           ),
         ),
       ],

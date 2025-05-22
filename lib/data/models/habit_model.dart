@@ -73,6 +73,7 @@ class HabitModel extends HabitEntity {
   }
 
   // Cria uma cópia do model com campos atualizados
+  @override
   HabitModel copyWith({
     String? id,
     String? userId,

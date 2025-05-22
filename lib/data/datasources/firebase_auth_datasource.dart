@@ -48,10 +48,10 @@ class FirebaseAuthDatasource {
         if (!userDoc.exists) return null;
 
         return UserModel.fromMap(userDoc.data()!, firebaseUser.uid);
-      } catch (e) {
-        print('Erro ao obter dados do usuário: $e');
-        return null;
-      }
+          } catch (e) {
+      // Return null on error
+      return null;
+    }
     });
   }
 

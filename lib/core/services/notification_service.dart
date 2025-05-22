@@ -46,8 +46,7 @@ class NotificationService {
 
   // Trata o tap na notificação
   void _onNotificationTapped(NotificationResponse notificationResponse) {
-    // Implementar navegação quando a notificação for tocada
-    print('Notificação tocada: ${notificationResponse.payload}');
+    // Handle notification tap - could implement navigation based on payload
   }
 
   // Solicita permissão para notificações (Android 13+)

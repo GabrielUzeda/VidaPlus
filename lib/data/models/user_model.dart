@@ -61,6 +61,7 @@ class UserModel extends UserEntity {
   }
 
   // Cria uma cópia do model com campos atualizados
+  @override
   UserModel copyWith({
     String? id,
     String? email,

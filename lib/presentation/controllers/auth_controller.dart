@@ -50,7 +50,7 @@ class AuthController extends ChangeNotifier {
       _user = await _authRepository.getCurrentUser();
       notifyListeners();
     } catch (e) {
-      print('Erro ao carregar usuário atual: $e');
+      // Silently handle error - user will remain null
     }
   }
 

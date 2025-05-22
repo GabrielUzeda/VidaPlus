@@ -59,6 +59,7 @@ class CheckInModel extends CheckInEntity {
   }
 
   // Cria uma cópia do model com campos atualizados
+  @override
   CheckInModel copyWith({
     String? id,
     String? habitId,
