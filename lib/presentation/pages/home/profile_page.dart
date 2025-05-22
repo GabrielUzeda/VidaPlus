@@ -46,7 +46,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 floating: false,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
-                  title: Text(_isEditing ? 'Editar Perfil' : 'Meu Perfil'),
+                  title: _isEditing ? const Text('Editar Perfil') : null,
                   background: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
