@@ -1,17 +1,34 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/usecases.dart';
 import '../../core/services/notification_service.dart';
 
-// Controlador de estado para autenticação (SOLID - Single Responsibility)
+// Controlador de estado para autenticação usando Use Cases (Clean Architecture)
 class AuthController extends ChangeNotifier {
-  final AuthRepository _authRepository;
+  // Use Cases de autenticação
+  final SignInUseCase _signInUseCase;
+  final SignUpUseCase _signUpUseCase;
+  final SignOutUseCase _signOutUseCase;
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final GetAuthStateUseCase _getAuthStateUseCase;
+  final UpdateProfileUseCase _updateProfileUseCase;
+  
   final NotificationService _notificationService;
 
   AuthController({
-    required AuthRepository authRepository,
+    required SignInUseCase signInUseCase,
+    required SignUpUseCase signUpUseCase,
+    required SignOutUseCase signOutUseCase,
+    required GetCurrentUserUseCase getCurrentUserUseCase,
+    required GetAuthStateUseCase getAuthStateUseCase,
+    required UpdateProfileUseCase updateProfileUseCase,
     required NotificationService notificationService,
-  })  : _authRepository = authRepository,
+  })  : _signInUseCase = signInUseCase,
+        _signUpUseCase = signUpUseCase,
+        _signOutUseCase = signOutUseCase,
+        _getCurrentUserUseCase = getCurrentUserUseCase,
+        _getAuthStateUseCase = getAuthStateUseCase,
+        _updateProfileUseCase = updateProfileUseCase,
         _notificationService = notificationService {
     _init();
   }
@@ -29,7 +46,7 @@ class AuthController extends ChangeNotifier {
   // Inicializa o controlador
   void _init() {
     // Escuta mudanças no estado de autenticação
-    _authRepository.authStateChanges.listen((user) {
+    _getAuthStateUseCase.call().listen((user) {
       _user = user;
       notifyListeners();
       
@@ -47,14 +64,14 @@ class AuthController extends ChangeNotifier {
   // Carrega o usuário atualmente autenticado
   Future<void> _loadCurrentUser() async {
     try {
-      _user = await _authRepository.getCurrentUser();
+      _user = await _getCurrentUserUseCase.call();
       notifyListeners();
     } catch (e) {
       // Silently handle error - user will remain null
     }
   }
 
-  // Realiza login
+  // Realiza login usando Use Case
   Future<void> signIn({
     required String email,
     required String password,
@@ -63,11 +80,12 @@ class AuthController extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      final user = await _authRepository.signInWithEmailAndPassword(
+      final params = SignInParams(
         email: email,
         password: password,
       );
 
+      final user = await _signInUseCase.call(params);
       _user = user;
       notifyListeners();
     } catch (e) {
@@ -77,7 +95,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // Realiza cadastro
+  // Realiza cadastro usando Use Case
   Future<void> signUp({
     required String email,
     required String password,
@@ -87,12 +105,13 @@ class AuthController extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      final user = await _authRepository.signUpWithEmailAndPassword(
+      final params = SignUpParams(
         email: email,
         password: password,
         name: name,
       );
 
+      final user = await _signUpUseCase.call(params);
       _user = user;
       notifyListeners();
     } catch (e) {
@@ -102,13 +121,13 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // Realiza logout
+  // Realiza logout usando Use Case
   Future<void> signOut() async {
     try {
       _setLoading(true);
       _clearError();
 
-      await _authRepository.signOut();
+      await _signOutUseCase.call();
       _user = null;
       
       // Cancela todas as notificações ao fazer logout
@@ -122,7 +141,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // Atualiza perfil do usuário
+  // Atualiza perfil do usuário usando Use Case
   Future<void> updateProfile({
     String? name,
     String? profileImagePath,
@@ -131,18 +150,12 @@ class AuthController extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      String? profileImageUrl;
-      
-      // Faz upload da imagem se fornecida
-      if (profileImagePath != null) {
-        profileImageUrl = await _authRepository.uploadProfileImage(profileImagePath);
-      }
-
-      final updatedUser = await _authRepository.updateProfile(
+      final params = UpdateProfileParams(
         name: name,
-        profileImageUrl: profileImageUrl,
+        profileImagePath: profileImagePath,
       );
 
+      final updatedUser = await _updateProfileUseCase.call(params);
       _user = updatedUser;
       notifyListeners();
     } catch (e) {

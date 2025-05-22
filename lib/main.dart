@@ -13,6 +13,9 @@ import 'data/datasources/firestore_habits_datasource.dart';
 import 'data/repositories_impl/auth_repository_impl.dart';
 import 'data/repositories_impl/habits_repository_impl.dart';
 
+// Domain Layer - Use Cases
+import 'domain/usecases/usecases.dart';
+
 // Presentation Layer
 import 'presentation/controllers/auth_controller.dart';
 import 'presentation/controllers/habits_controller.dart';
@@ -81,16 +84,108 @@ class VidaPlusApp extends StatelessWidget {
           ),
         ),
         
+        // Auth Use Cases
+        Provider<SignInUseCase>(
+          create: (context) => SignInUseCase(
+            context.read<AuthRepositoryImpl>(),
+          ),
+        ),
+        Provider<SignUpUseCase>(
+          create: (context) => SignUpUseCase(
+            context.read<AuthRepositoryImpl>(),
+          ),
+        ),
+        Provider<SignOutUseCase>(
+          create: (context) => SignOutUseCase(
+            context.read<AuthRepositoryImpl>(),
+          ),
+        ),
+        Provider<GetCurrentUserUseCase>(
+          create: (context) => GetCurrentUserUseCase(
+            context.read<AuthRepositoryImpl>(),
+          ),
+        ),
+        Provider<GetAuthStateUseCase>(
+          create: (context) => GetAuthStateUseCase(
+            context.read<AuthRepositoryImpl>(),
+          ),
+        ),
+        Provider<UpdateProfileUseCase>(
+          create: (context) => UpdateProfileUseCase(
+            context.read<AuthRepositoryImpl>(),
+          ),
+        ),
+        
+        // Habits Use Cases
+        Provider<CreateHabitUseCase>(
+          create: (context) => CreateHabitUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        Provider<GetUserHabitsUseCase>(
+          create: (context) => GetUserHabitsUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        Provider<GetUserHabitsStreamUseCase>(
+          create: (context) => GetUserHabitsStreamUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        Provider<UpdateHabitUseCase>(
+          create: (context) => UpdateHabitUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        Provider<DeleteHabitUseCase>(
+          create: (context) => DeleteHabitUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        Provider<CheckInHabitUseCase>(
+          create: (context) => CheckInHabitUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        Provider<GetTodayCheckInsUseCase>(
+          create: (context) => GetTodayCheckInsUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        Provider<GetHabitsProgressUseCase>(
+          create: (context) => GetHabitsProgressUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        Provider<GetHabitHistoryUseCase>(
+          create: (context) => GetHabitHistoryUseCase(
+            context.read<HabitsRepositoryImpl>(),
+          ),
+        ),
+        
         // Controllers
         ChangeNotifierProvider<AuthController>(
           create: (context) => AuthController(
-            authRepository: context.read<AuthRepositoryImpl>(),
+            signInUseCase: context.read<SignInUseCase>(),
+            signUpUseCase: context.read<SignUpUseCase>(),
+            signOutUseCase: context.read<SignOutUseCase>(),
+            getCurrentUserUseCase: context.read<GetCurrentUserUseCase>(),
+            getAuthStateUseCase: context.read<GetAuthStateUseCase>(),
+            updateProfileUseCase: context.read<UpdateProfileUseCase>(),
             notificationService: context.read<NotificationService>(),
           ),
         ),
         ChangeNotifierProvider<HabitsController>(
           create: (context) => HabitsController(
-            habitsRepository: context.read<HabitsRepositoryImpl>(),
+            createHabitUseCase: context.read<CreateHabitUseCase>(),
+            getUserHabitsUseCase: context.read<GetUserHabitsUseCase>(),
+            getUserHabitsStreamUseCase: context.read<GetUserHabitsStreamUseCase>(),
+            updateHabitUseCase: context.read<UpdateHabitUseCase>(),
+            deleteHabitUseCase: context.read<DeleteHabitUseCase>(),
+            checkInHabitUseCase: context.read<CheckInHabitUseCase>(),
+            getTodayCheckInsUseCase: context.read<GetTodayCheckInsUseCase>(),
+            getHabitsProgressUseCase: context.read<GetHabitsProgressUseCase>(),
+            getHabitHistoryUseCase: context.read<GetHabitHistoryUseCase>(),
             notificationService: context.read<NotificationService>(),
           ),
         ),

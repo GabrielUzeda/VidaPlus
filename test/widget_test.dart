@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 
 import 'package:vidaplus/domain/entities/user_entity.dart';
 import 'package:vidaplus/domain/repositories/auth_repository.dart';
+import 'package:vidaplus/domain/usecases/usecases.dart';
 import 'package:vidaplus/core/services/notification_service.dart';
 import 'package:vidaplus/presentation/controllers/auth_controller.dart';
 
@@ -158,6 +159,22 @@ class FakeNotificationService implements NotificationService {
   }) async {}
 }
 
+// Helper function to create AuthController with Use Cases
+AuthController createAuthController(
+  FakeAuthRepository fakeAuthRepository,
+  FakeNotificationService fakeNotificationService,
+) {
+  return AuthController(
+    signInUseCase: SignInUseCase(fakeAuthRepository),
+    signUpUseCase: SignUpUseCase(fakeAuthRepository),
+    signOutUseCase: SignOutUseCase(fakeAuthRepository),
+    getCurrentUserUseCase: GetCurrentUserUseCase(fakeAuthRepository),
+    getAuthStateUseCase: GetAuthStateUseCase(fakeAuthRepository),
+    updateProfileUseCase: UpdateProfileUseCase(fakeAuthRepository),
+    notificationService: fakeNotificationService,
+  );
+}
+
 void main() {
   testWidgets('VidaPlus login page test', (WidgetTester tester) async {
     // Create fake dependencies
@@ -171,9 +188,9 @@ void main() {
           Provider<AuthRepository>.value(value: fakeAuthRepository),
           Provider<NotificationService>.value(value: fakeNotificationService),
           ChangeNotifierProvider<AuthController>(
-            create: (context) => AuthController(
-              authRepository: fakeAuthRepository,
-              notificationService: fakeNotificationService,
+            create: (context) => createAuthController(
+              fakeAuthRepository,
+              fakeNotificationService,
             ),
           ),
         ],
@@ -213,9 +230,9 @@ void main() {
           Provider<AuthRepository>.value(value: fakeAuthRepository),
           Provider<NotificationService>.value(value: fakeNotificationService),
           ChangeNotifierProvider<AuthController>(
-            create: (context) => AuthController(
-              authRepository: fakeAuthRepository,
-              notificationService: fakeNotificationService,
+            create: (context) => createAuthController(
+              fakeAuthRepository,
+              fakeNotificationService,
             ),
           ),
         ],

@@ -1,18 +1,44 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/habit_entity.dart';
 import '../../domain/entities/checkin_entity.dart';
-import '../../domain/repositories/habits_repository.dart';
+import '../../domain/usecases/usecases.dart';
 import '../../core/services/notification_service.dart';
 
-// Controlador de estado para hábitos (SOLID - Single Responsibility)
+// Controlador de estado para hábitos usando Use Cases (Clean Architecture)
 class HabitsController extends ChangeNotifier {
-  final HabitsRepository _habitsRepository;
+  // Use Cases de hábitos
+  final CreateHabitUseCase _createHabitUseCase;
+  final GetUserHabitsUseCase _getUserHabitsUseCase;
+  final GetUserHabitsStreamUseCase _getUserHabitsStreamUseCase;
+  final UpdateHabitUseCase _updateHabitUseCase;
+  final DeleteHabitUseCase _deleteHabitUseCase;
+  final CheckInHabitUseCase _checkInHabitUseCase;
+  final GetTodayCheckInsUseCase _getTodayCheckInsUseCase;
+  final GetHabitsProgressUseCase _getHabitsProgressUseCase;
+  final GetHabitHistoryUseCase _getHabitHistoryUseCase;
+  
   final NotificationService _notificationService;
 
   HabitsController({
-    required HabitsRepository habitsRepository,
+    required CreateHabitUseCase createHabitUseCase,
+    required GetUserHabitsUseCase getUserHabitsUseCase,
+    required GetUserHabitsStreamUseCase getUserHabitsStreamUseCase,
+    required UpdateHabitUseCase updateHabitUseCase,
+    required DeleteHabitUseCase deleteHabitUseCase,
+    required CheckInHabitUseCase checkInHabitUseCase,
+    required GetTodayCheckInsUseCase getTodayCheckInsUseCase,
+    required GetHabitsProgressUseCase getHabitsProgressUseCase,
+    required GetHabitHistoryUseCase getHabitHistoryUseCase,
     required NotificationService notificationService,
-  })  : _habitsRepository = habitsRepository,
+  })  : _createHabitUseCase = createHabitUseCase,
+        _getUserHabitsUseCase = getUserHabitsUseCase,
+        _getUserHabitsStreamUseCase = getUserHabitsStreamUseCase,
+        _updateHabitUseCase = updateHabitUseCase,
+        _deleteHabitUseCase = deleteHabitUseCase,
+        _checkInHabitUseCase = checkInHabitUseCase,
+        _getTodayCheckInsUseCase = getTodayCheckInsUseCase,
+        _getHabitsProgressUseCase = getHabitsProgressUseCase,
+        _getHabitHistoryUseCase = getHabitHistoryUseCase,
         _notificationService = notificationService;
 
   List<HabitEntity> _habits = [];
@@ -28,13 +54,13 @@ class HabitsController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Carrega hábitos do usuário
+  // Carrega hábitos do usuário usando Use Case
   Future<void> loadUserHabits(String userId) async {
     try {
       _setLoading(true);
       _clearError();
 
-      _habits = await _habitsRepository.getUserHabits(userId);
+      _habits = await _getUserHabitsUseCase.call(userId);
       
       // Carrega check-ins de hoje também
       await _loadTodayCheckIns(userId);
@@ -54,25 +80,21 @@ class HabitsController extends ChangeNotifier {
     }
   }
 
-  // Stream dos hábitos do usuário (para atualizações em tempo real)
+  // Stream dos hábitos do usuário
   Stream<List<HabitEntity>> getUserHabitsStream(String userId) {
-    return _habitsRepository.getUserHabitsStream(userId);
+    return _getUserHabitsStreamUseCase.call(userId);
   }
 
-  // Carrega check-ins de hoje
+  // Carrega check-ins de hoje usando Use Case
   Future<void> _loadTodayCheckIns(String userId) async {
     try {
-      final today = DateTime.now();
-      _todayCheckIns = await _habitsRepository.getCheckInsForUserAndDate(
-        userId: userId,
-        date: today,
-      );
+      _todayCheckIns = await _getTodayCheckInsUseCase.call(userId);
     } catch (e) {
       // Silently handle error - check-ins remain empty
     }
   }
 
-  // Cria um novo hábito
+  // Cria um novo hábito usando Use Case
   Future<void> createHabit({
     required String userId,
     required String name,
@@ -83,18 +105,14 @@ class HabitsController extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      final now = DateTime.now();
-      final newHabit = HabitEntity(
-        id: '', // Será definido pelo Firestore
+      final params = CreateHabitParams(
         userId: userId,
         name: name,
         frequency: frequency,
         recommendedTime: recommendedTime,
-        createdAt: now,
-        updatedAt: now,
       );
 
-      final createdHabit = await _habitsRepository.createHabit(newHabit);
+      final createdHabit = await _createHabitUseCase.call(params);
       
       // Adiciona à lista local
       _habits.add(createdHabit);
@@ -112,13 +130,13 @@ class HabitsController extends ChangeNotifier {
     }
   }
 
-  // Atualiza um hábito existente
+  // Atualiza um hábito existente usando Use Case
   Future<void> updateHabit(HabitEntity habit) async {
     try {
       _setLoading(true);
       _clearError();
 
-      final updatedHabit = await _habitsRepository.updateHabit(habit);
+      final updatedHabit = await _updateHabitUseCase.call(habit);
       
       // Atualiza na lista local
       final index = _habits.indexWhere((h) => h.id == habit.id);
@@ -141,13 +159,13 @@ class HabitsController extends ChangeNotifier {
     }
   }
 
-  // Remove um hábito
+  // Remove um hábito usando Use Case
   Future<void> deleteHabit(String habitId) async {
     try {
       _setLoading(true);
       _clearError();
 
-      await _habitsRepository.deleteHabit(habitId);
+      await _deleteHabitUseCase.call(habitId);
       
       // Remove da lista local
       _habits.removeWhere((h) => h.id == habitId);
@@ -163,7 +181,7 @@ class HabitsController extends ChangeNotifier {
     }
   }
 
-  // Registra check-in para um hábito
+  // Registra check-in para um hábito usando Use Case
   Future<void> checkInHabit({
     required String habitId,
     required String userId,
@@ -173,19 +191,13 @@ class HabitsController extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-
-      final checkIn = CheckInEntity(
-        id: '', // Será definido pelo Firestore
+      final params = CheckInHabitParams(
         habitId: habitId,
         userId: userId,
-        completedAt: now,
-        date: today,
         notes: notes,
       );
 
-      final createdCheckIn = await _habitsRepository.createCheckIn(checkIn);
+      final createdCheckIn = await _checkInHabitUseCase.call(params);
       
       // Adiciona à lista de check-ins de hoje
       _todayCheckIns.add(createdCheckIn);
@@ -203,7 +215,7 @@ class HabitsController extends ChangeNotifier {
     return _todayCheckIns.any((checkIn) => checkIn.habitId == habitId);
   }
 
-  // Obtém progresso do usuário
+  // Obtém progresso do usuário usando Use Case
   Future<void> loadUserProgress({
     required String userId,
     DateTime? startDate,
@@ -213,11 +225,13 @@ class HabitsController extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      _userProgress = await _habitsRepository.getUserProgress(
+      final params = GetProgressParams(
         userId: userId,
         startDate: startDate,
         endDate: endDate,
       );
+
+      _userProgress = await _getHabitsProgressUseCase.call(params);
 
       notifyListeners();
     } catch (e) {
@@ -227,18 +241,20 @@ class HabitsController extends ChangeNotifier {
     }
   }
 
-  // Obtém histórico de check-ins para um hábito
+  // Obtém histórico de check-ins para um hábito usando Use Case
   Future<List<CheckInEntity>> getHabitCheckInHistory({
     required String habitId,
     DateTime? startDate,
     DateTime? endDate,
   }) async {
     try {
-      return await _habitsRepository.getHabitCheckInHistory(
+      final params = GetHabitHistoryParams(
         habitId: habitId,
         startDate: startDate,
         endDate: endDate,
       );
+
+      return await _getHabitHistoryUseCase.call(params);
     } catch (e) {
       _setError(e.toString());
       return [];

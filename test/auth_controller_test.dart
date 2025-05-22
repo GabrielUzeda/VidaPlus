@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vidaplus/domain/entities/user_entity.dart';
 import 'package:vidaplus/domain/repositories/auth_repository.dart';
+import 'package:vidaplus/domain/usecases/usecases.dart';
 import 'package:vidaplus/core/services/notification_service.dart';
 import 'package:vidaplus/presentation/controllers/auth_controller.dart';
 
@@ -136,13 +137,34 @@ void main() {
     late AuthController authController;
     late FakeAuthRepository fakeAuthRepository;
     late FakeNotificationService fakeNotificationService;
+    
+    // Use Cases
+    late SignInUseCase signInUseCase;
+    late SignUpUseCase signUpUseCase;
+    late SignOutUseCase signOutUseCase;
+    late GetCurrentUserUseCase getCurrentUserUseCase;
+    late GetAuthStateUseCase getAuthStateUseCase;
+    late UpdateProfileUseCase updateProfileUseCase;
 
     setUp(() {
       fakeAuthRepository = FakeAuthRepository();
       fakeNotificationService = FakeNotificationService();
       
+      // Cria Use Cases com o repositório fake
+      signInUseCase = SignInUseCase(fakeAuthRepository);
+      signUpUseCase = SignUpUseCase(fakeAuthRepository);
+      signOutUseCase = SignOutUseCase(fakeAuthRepository);
+      getCurrentUserUseCase = GetCurrentUserUseCase(fakeAuthRepository);
+      getAuthStateUseCase = GetAuthStateUseCase(fakeAuthRepository);
+      updateProfileUseCase = UpdateProfileUseCase(fakeAuthRepository);
+      
       authController = AuthController(
-        authRepository: fakeAuthRepository,
+        signInUseCase: signInUseCase,
+        signUpUseCase: signUpUseCase,
+        signOutUseCase: signOutUseCase,
+        getCurrentUserUseCase: getCurrentUserUseCase,
+        getAuthStateUseCase: getAuthStateUseCase,
+        updateProfileUseCase: updateProfileUseCase,
         notificationService: fakeNotificationService,
       );
     });
