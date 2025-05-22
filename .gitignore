@@ -1,0 +1,229 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+.packages
+.pub-cache/
+.pub/
+.pub-preload-cache
+
+# Android related
+**/android/**/gradle-wrapper.jar
+**/android/.gradle
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/**/gradle/
+**/android/**/local.properties
+**/android/**/gradle.properties
+**/android/**/gradlew
+**/android/**/gradlew.bat
+**/android/**/key.properties
+**/android/**/android_licenses
+
+# iOS related
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Pods/
+**/ios/**/.symlinks/
+**/ios/**/profile
+**/ios/**/xcuserdata
+**/ios/.generated/
+**/ios/Flutter/App.framework/
+**/ios/Flutter/Flutter.framework/
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# Web related
+**/web/**/.last_build_id
+**/web/**/dart_tool/
+**/web/**/build/
+**/web/**/.dart_tool/
+
+# macOS
+**/macos/Flutter/Flutter-Outputs/
+**/macos/Flutter/Flutter-Generated/
+**/macos/Flutter/Flutter-Inputs.xcfilelist
+**/macos/Flutter/Flutter-Outputs.xcfilelist
+
+# Windows
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugins.cmake
+**/windows/flutter/generated_plugin_registrant.h
+
+# Firebase
+**/android/app/google-services.json
+**/ios/Runner/GoogleService-Info.plist
+**/lib/firebase_options.dart
+**/web/firebase-messaging-sw.js
+
+# Local development
+.env
+.env.*
+!.env.example
+
+# Coverage files
+coverage/
+
+# Test coverage
+**/coverage/
+
+# Web specific
+**/web/**/.dart_tool/
+**/web/**/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/README.md
+
+# VS Code Flutter extension
+.flutter-plugins-dependencies
+
+# VS Code settings
+.vscode/settings.json
+
+# IntelliJ/Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Gradle
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Logs
+*.log
+
+# Flutter/Dart
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+.packages
+build/
+
+# Firebase
+**/android/app/google-services.json
+**/ios/Runner/GoogleService-Info.plist
+**/lib/firebase_options.dart
+**/web/firebase-messaging-sw.js
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Android Studio
+.idea/
+.gradle/
+build/
+local.properties
+*.iml
+*.iws
+*.ipr
+.idea/
+
+# iOS
+**/ios/Flutter/Flutter.framework/
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/App.framework/
+**/ios/Flutter/AppFrameworkInfo.plist
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/Flutter/.last_build_id
+**/ios/Podfile.lock
+**/ios/Podfile
+**/ios/Runner.xcworkspace
+**/ios/Runner.xcodeproj/project.xcworkspace
+**/ios/Runner.xcodeproj/xcuserdata
+
+# Web
+**/web/**/.dart_tool/
+**/web/**/build/
+
+# Test coverage
+**/coverage/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/README.md
