@@ -131,7 +131,13 @@ class AuthController extends ChangeNotifier {
       _user = null;
       
       // Cancela todas as notificações ao fazer logout
-      await _notificationService.cancelAllNotifications();
+      // Usa try-catch para não interromper o logout se houver erro
+      try {
+        await _notificationService.cancelAllNotifications();
+      } catch (e) {
+        // Erro ao cancelar notificações não deve impedir o logout
+        print('Warning: Could not cancel notifications during logout: $e');
+      }
       
       notifyListeners();
     } catch (e) {
