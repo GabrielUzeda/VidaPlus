@@ -88,9 +88,16 @@ class HabitsController extends ChangeNotifier {
   // Carrega check-ins de hoje usando Use Case
   Future<void> _loadTodayCheckIns(String userId) async {
     try {
-      _todayCheckIns = await _getTodayCheckInsUseCase.call(userId);
+      final allTodayCheckIns = await _getTodayCheckInsUseCase.call(userId);
+      
+      // Filtra apenas check-ins de hábitos que ainda existem
+      final habitIds = _habits.map((h) => h.id).toSet();
+      _todayCheckIns = allTodayCheckIns.where((checkIn) => 
+        habitIds.contains(checkIn.habitId)
+      ).toList();
     } catch (e) {
       // Silently handle error - check-ins remain empty
+      _todayCheckIns = [];
     }
   }
 
@@ -170,6 +177,9 @@ class HabitsController extends ChangeNotifier {
       // Remove da lista local
       _habits.removeWhere((h) => h.id == habitId);
       
+      // Remove check-ins órfãos deste hábito da lista de hoje
+      _todayCheckIns.removeWhere((checkIn) => checkIn.habitId == habitId);
+      
       // Cancela notificação
       await _notificationService.cancelHabitReminder(habitId);
 
@@ -190,6 +200,13 @@ class HabitsController extends ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
+
+      // Verifica se já existe check-in para este hábito hoje
+      final existingCheckIn = _todayCheckIns.where((checkIn) => checkIn.habitId == habitId).firstOrNull;
+      if (existingCheckIn != null) {
+        // Já foi feito check-in hoje para este hábito
+        return;
+      }
 
       final params = CheckInHabitParams(
         habitId: habitId,
@@ -264,15 +281,53 @@ class HabitsController extends ChangeNotifier {
   // Calcula estatísticas do dia
   Map<String, dynamic> getTodayStats() {
     final totalHabits = _habits.length;
-    final completedHabits = _todayCheckIns.length;
+    
+    // Conta apenas hábitos que existem na lista atual e têm check-in hoje
+    final completedHabits = _habits.where((habit) => 
+      _todayCheckIns.any((checkIn) => checkIn.habitId == habit.id)
+    ).length;
+    
+    final pendingHabits = totalHabits - completedHabits;
     final completionRate = totalHabits > 0 ? completedHabits / totalHabits : 0.0;
 
     return {
       'totalHabits': totalHabits,
       'completedHabits': completedHabits,
       'completionRate': completionRate,
-      'pendingHabits': totalHabits - completedHabits,
+      'pendingHabits': pendingHabits,
     };
+  }
+
+  // Remove check-in de um hábito (desfazer)
+  Future<void> undoCheckIn({
+    required String habitId,
+    required String userId,
+  }) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      // Encontra o check-in de hoje para este hábito
+      final checkInToRemove = _todayCheckIns
+          .where((checkIn) => checkIn.habitId == habitId)
+          .firstOrNull;
+
+      if (checkInToRemove == null) {
+        return; // Não há check-in para remover
+      }
+
+      // Remove do Firestore (se tiver método no Use Case)
+      // Por enquanto, apenas remove da lista local
+      _todayCheckIns.removeWhere((checkIn) => 
+        checkIn.habitId == habitId && checkIn.id == checkInToRemove.id
+      );
+
+      notifyListeners();
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Define estado de carregamento
