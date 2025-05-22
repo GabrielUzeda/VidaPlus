@@ -8,7 +8,7 @@ class HabitModel extends Habit {
     required String name,
     required String description,
     required Frequency frequency,
-    required TimeOfDay preferredTime,
+    required CustomTimeOfDay preferredTime,
     required DateTime createdAt,
     required DateTime updatedAt,
     bool active = true,
@@ -31,7 +31,7 @@ class HabitModel extends Habit {
       name: json['name'],
       description: json['description'],
       frequency: _frequencyFromString(json['frequency']),
-      preferredTime: TimeOfDayModel.fromJson(json['preferredTime']),
+      preferredTime: TimeOfDayModel.fromJson(json['preferredTime']).toEntity(),
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
       active: json['active'] ?? true,
@@ -95,11 +95,14 @@ class HabitModel extends Habit {
   }
 }
 
-class TimeOfDayModel extends TimeOfDay {
+class TimeOfDayModel {
+  final int hour;
+  final int minute;
+
   const TimeOfDayModel({
-    required int hour,
-    required int minute,
-  }) : super(hour: hour, minute: minute);
+    required this.hour,
+    required this.minute,
+  });
 
   factory TimeOfDayModel.fromJson(Map<String, dynamic> json) {
     return TimeOfDayModel(
@@ -113,5 +116,13 @@ class TimeOfDayModel extends TimeOfDay {
       'hour': hour,
       'minute': minute,
     };
+  }
+
+  CustomTimeOfDay toEntity() {
+    return CustomTimeOfDay(hour: hour, minute: minute);
+  }
+  
+  factory TimeOfDayModel.fromEntity(CustomTimeOfDay time) {
+    return TimeOfDayModel(hour: time.hour, minute: time.minute);
   }
 } 

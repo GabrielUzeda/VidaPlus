@@ -21,6 +21,7 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<User> createUser({
+    required String id,
     required String email,
     required String name,
     String? photoUrl,

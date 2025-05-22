@@ -327,8 +327,8 @@ class _HabitsPageState extends State<HabitsPage> {
               final habitController = Provider.of<HabitController>(context, listen: false);
               habitController.deleteHabit(habit.id);
             },
-            child: const Text('Excluir'),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Excluir'),
           ),
         ],
       ),

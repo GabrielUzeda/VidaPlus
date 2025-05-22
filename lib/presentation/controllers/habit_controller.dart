@@ -76,7 +76,7 @@ class HabitController extends ChangeNotifier {
     required String name,
     required String description,
     required Frequency frequency,
-    required TimeOfDay preferredTime,
+    required CustomTimeOfDay preferredTime,
   }) async {
     try {
       _status = HabitStatus.loading;
@@ -106,7 +106,7 @@ class HabitController extends ChangeNotifier {
     String? name,
     String? description,
     Frequency? frequency,
-    TimeOfDay? preferredTime,
+    CustomTimeOfDay? preferredTime,
     bool? active,
   }) async {
     try {
@@ -163,8 +163,4 @@ class HabitController extends ChangeNotifier {
     }
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 } 

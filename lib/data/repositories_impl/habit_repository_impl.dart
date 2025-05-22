@@ -45,12 +45,10 @@ class HabitRepositoryImpl implements HabitRepository {
     required String name,
     required String description,
     required Frequency frequency,
-    required TimeOfDay preferredTime,
+    required CustomTimeOfDay preferredTime,
   }) async {
     try {
-      final timeOfDayModel = preferredTime is TimeOfDayModel
-          ? preferredTime
-          : TimeOfDayModel(hour: preferredTime.hour, minute: preferredTime.minute);
+      final timeOfDayModel = TimeOfDayModel.fromEntity(preferredTime);
 
       return await _habitDatasource.createHabit(
         userId: userId,
@@ -70,15 +68,13 @@ class HabitRepositoryImpl implements HabitRepository {
     String? name,
     String? description,
     Frequency? frequency,
-    TimeOfDay? preferredTime,
+    CustomTimeOfDay? preferredTime,
     bool? active,
   }) async {
     try {
       Map<String, dynamic>? preferredTimeJson;
       if (preferredTime != null) {
-        final timeOfDayModel = preferredTime is TimeOfDayModel
-            ? preferredTime
-            : TimeOfDayModel(hour: preferredTime.hour, minute: preferredTime.minute);
+        final timeOfDayModel = TimeOfDayModel.fromEntity(preferredTime);
         preferredTimeJson = timeOfDayModel.toJson();
       }
 

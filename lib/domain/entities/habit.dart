@@ -6,11 +6,11 @@ enum Frequency {
   custom
 }
 
-class TimeOfDay {
+class CustomTimeOfDay {
   final int hour;
   final int minute;
 
-  const TimeOfDay({
+  const CustomTimeOfDay({
     required this.hour,
     required this.minute,
   });
@@ -29,7 +29,7 @@ class Habit {
   final String name;
   final String description;
   final Frequency frequency;
-  final TimeOfDay preferredTime;
+  final CustomTimeOfDay preferredTime;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool active;

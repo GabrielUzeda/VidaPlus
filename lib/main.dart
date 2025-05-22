@@ -7,7 +7,6 @@ import 'package:vida_plus/presentation/controllers/auth_controller.dart';
 import 'package:vida_plus/presentation/controllers/habit_controller.dart';
 import 'package:vida_plus/presentation/pages/login_page.dart';
 import 'package:vida_plus/presentation/pages/home_page.dart';
-import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

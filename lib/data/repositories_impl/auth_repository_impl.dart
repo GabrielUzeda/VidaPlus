@@ -14,7 +14,7 @@ class AuthRepositoryImpl implements AuthRepository {
         _userDatasource = userDatasource;
 
   @override
-  Future<String> signIn({required String email, required String password}) async {
+  Future<String> signIn(String email, String password) async {
     try {
       return await _authDatasource.signIn(email, password);
     } catch (e) {
@@ -23,11 +23,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<String> signUp({
-    required String email,
-    required String password,
-    required String name,
-  }) async {
+  @override
+  Future<String> signUp(String email, String password, String name) async {
     try {
       // Primeiro, cria o usuário na autenticação
       final userId = await _authDatasource.signUp(email, password);

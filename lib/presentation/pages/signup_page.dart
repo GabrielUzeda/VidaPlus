@@ -33,7 +33,6 @@ class _SignupPageState extends State<SignupPage> {
       authController.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        confirmPassword: _confirmPasswordController.text,
         name: _nameController.text.trim(),
       );
     }

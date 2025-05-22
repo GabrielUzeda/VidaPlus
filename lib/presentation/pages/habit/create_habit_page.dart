@@ -16,7 +16,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   Frequency _selectedFrequency = Frequency.daily;
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 0);
+  CustomTimeOfDay _selectedTime = const CustomTimeOfDay(hour: 8, minute: 0);
 
   @override
   void dispose() {
@@ -28,12 +28,12 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
   Future<void> _selectTime() async {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: _selectedTime,
+      initialTime: TimeOfDay(hour: _selectedTime.hour, minute: _selectedTime.minute),
     );
-
-    if (pickedTime != null && pickedTime != _selectedTime) {
+    
+    if (pickedTime != null) {
       setState(() {
-        _selectedTime = pickedTime;
+        _selectedTime = CustomTimeOfDay(hour: pickedTime.hour, minute: pickedTime.minute);
       });
     }
   }
@@ -59,10 +59,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         frequency: _selectedFrequency,
-        preferredTime: TimeOfDay(
-          hour: _selectedTime.hour,
-          minute: _selectedTime.minute,
-        ),
+        preferredTime: _selectedTime,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

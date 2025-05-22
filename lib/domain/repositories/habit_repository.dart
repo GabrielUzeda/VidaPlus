@@ -10,14 +10,14 @@ abstract class HabitRepository {
     required String name,
     required String description,
     required Frequency frequency,
-    required TimeOfDay preferredTime,
+    required CustomTimeOfDay preferredTime,
   });
   Future<Habit> updateHabit({
     required String id,
     String? name,
     String? description,
     Frequency? frequency,
-    TimeOfDay? preferredTime,
+    CustomTimeOfDay? preferredTime,
     bool? active,
   });
   Future<void> deleteHabit(String id);

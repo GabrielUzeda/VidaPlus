@@ -12,7 +12,7 @@ class CreateHabit {
     required String name,
     required String description,
     required Frequency frequency,
-    required TimeOfDay preferredTime,
+    required CustomTimeOfDay preferredTime,
   }) async {
     // Validações
     if (userId.isEmpty) {
@@ -55,7 +55,7 @@ class UpdateHabit {
     String? name,
     String? description,
     Frequency? frequency,
-    TimeOfDay? preferredTime,
+    CustomTimeOfDay? preferredTime,
     bool? active,
   }) async {
     if (id.isEmpty) {

@@ -6,7 +6,7 @@ void main() {
     test('should create a valid Habit with all required properties', () {
       // Arrange
       final now = DateTime.now();
-      const preferredTime = TimeOfDay(hour: 8, minute: 0);
+      final preferredTime = const CustomTimeOfDay(hour: 8, minute: 0);
       
       // Act
       final habit = Habit(
@@ -36,7 +36,7 @@ void main() {
     test('should create a valid Habit with active set to false', () {
       // Arrange
       final now = DateTime.now();
-      const preferredTime = TimeOfDay(hour: 8, minute: 0);
+      final preferredTime = const CustomTimeOfDay(hour: 8, minute: 0);
       
       // Act
       final habit = Habit(
@@ -55,14 +55,14 @@ void main() {
       expect(habit.active, false);
     });
     
-    test('TimeOfDay should format time correctly', () {
+    test('CustomTimeOfDay should format time correctly', () {
       // Arrange
-      const time1 = TimeOfDay(hour: 8, minute: 5);
-      const time2 = TimeOfDay(hour: 18, minute: 30);
+      final time1 = const CustomTimeOfDay(hour: 8, minute: 5);
+      final time2 = const CustomTimeOfDay(hour: 18, minute: 30);
       
       // Act & Assert
       expect(time1.toString(), '08:05');
       expect(time2.toString(), '18:30');
     });
   });
-} 
+}
