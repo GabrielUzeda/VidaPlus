@@ -1,0 +1,531 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import '../../controllers/auth_controller.dart';
+
+// Página de perfil do usuário
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final _nameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  File? _selectedImage;
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthController>().user;
+    _nameController.text = user?.name ?? '';
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Consumer<AuthController>(
+        builder: (context, authController, _) {
+          final user = authController.user;
+          
+          return CustomScrollView(
+            slivers: [
+              // Header com foto de perfil
+              SliverAppBar(
+                expandedHeight: 280,
+                floating: false,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Text(_isEditing ? 'Editar Perfil' : 'Meu Perfil'),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.secondary,
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Foto de perfil
+                        GestureDetector(
+                          onTap: _isEditing ? _showImagePicker : null,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 60,
+                                backgroundColor: Colors.white,
+                                backgroundImage: _getProfileImage(user),
+                                child: _getProfileImage(user) == null
+                                    ? Text(
+                                        user?.name.substring(0, 1).toUpperCase() ?? 'U',
+                                        style: TextStyle(
+                                          fontSize: 48,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              if (_isEditing)
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Nome do usuário
+                        if (!_isEditing) ...[
+                          Text(
+                            user?.name ?? 'Usuário',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user?.email ?? '',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  if (!_isEditing)
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        setState(() {
+                          _isEditing = true;
+                        });
+                      },
+                    ),
+                ],
+              ),
+
+              // Conteúdo principal
+              if (_isEditing)
+                _buildEditForm(authController)
+              else
+                _buildProfileInfo(authController, user),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // Formulário de edição
+  Widget _buildEditForm(AuthController authController) {
+    return SliverToBoxAdapter(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Campo de nome
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nome completo',
+                  prefixIcon: Icon(Icons.person),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Por favor, digite seu nome';
+                  }
+                  if (value.trim().length < 2) {
+                    return 'Nome deve ter pelo menos 2 caracteres';
+                  }
+                  return null;
+                },
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Preview da imagem selecionada
+              if (_selectedImage != null) ...[
+                Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      _selectedImage!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Botões de ação
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: authController.isLoading ? null : _cancelEdit,
+                      child: const Text('Cancelar'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: authController.isLoading ? null : () => _saveChanges(authController),
+                      child: authController.isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Salvar'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Informações do perfil (modo visualização)
+  Widget _buildProfileInfo(AuthController authController, user) {
+    return SliverToBoxAdapter(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            // Estatísticas simples
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatItem('Dias Ativos', '${DateTime.now().difference(user?.createdAt ?? DateTime.now()).inDays}'),
+                        _buildStatItem('Hábitos', '5'), // Placeholder
+                        _buildStatItem('Sequência', '7'), // Placeholder
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Opções do perfil
+            _buildProfileOption(
+              icon: Icons.notifications,
+              title: 'Notificações',
+              subtitle: 'Gerenciar lembretes',
+              onTap: _showNotificationSettings,
+            ),
+            
+            _buildProfileOption(
+              icon: Icons.dark_mode,
+              title: 'Modo Escuro',
+              subtitle: 'Seguindo sistema',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Modo escuro ativo automaticamente!')),
+                );
+              },
+            ),
+            
+            _buildProfileOption(
+              icon: Icons.info,
+              title: 'Sobre o App',
+              subtitle: 'Vida+ v1.0.0',
+              onTap: _showAboutDialog,
+            ),
+
+            const SizedBox(height: 20),
+
+            // Botão de logout
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showLogoutDialog(authController),
+                icon: const Icon(Icons.logout, color: Colors.red),
+                label: const Text(
+                  'Sair da Conta',
+                  style: TextStyle(color: Colors.red),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.red),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Constrói item de estatística
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Constrói opção do perfil
+  Widget _buildProfileOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  // Obtém imagem de perfil
+  ImageProvider? _getProfileImage(user) {
+    if (_selectedImage != null) {
+      return FileImage(_selectedImage!);
+    }
+    if (user?.profileImageUrl != null) {
+      return NetworkImage(user!.profileImageUrl!);
+    }
+    return null;
+  }
+
+  // Mostra seletor de imagem
+  void _showImagePicker() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Câmera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galeria'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              if (_selectedImage != null || context.read<AuthController>().user?.profileImageUrl != null)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text('Remover foto', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _selectedImage = null;
+                    });
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Seleciona imagem
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: source);
+      
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
+      );
+    }
+  }
+
+  // Cancela edição
+  void _cancelEdit() {
+    setState(() {
+      _isEditing = false;
+      _selectedImage = null;
+      final user = context.read<AuthController>().user;
+      _nameController.text = user?.name ?? '';
+    });
+  }
+
+  // Salva alterações
+  Future<void> _saveChanges(AuthController authController) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      await authController.updateProfile(
+        name: _nameController.text.trim(),
+        profileImagePath: _selectedImage?.path,
+      );
+
+      setState(() {
+        _isEditing = false;
+        _selectedImage = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Perfil atualizado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao atualizar perfil: $e')),
+      );
+    }
+  }
+
+  // Mostra configurações de notificação
+  void _showNotificationSettings() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Notificações'),
+        content: const Text('Em breve você poderá personalizar suas notificações aqui!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Mostra diálogo sobre o app
+  void _showAboutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sobre o Vida+'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Versão: 1.0.0'),
+            SizedBox(height: 8),
+            Text('Desenvolvido com Flutter'),
+            SizedBox(height: 8),
+            Text('Um app para transformar seus hábitos e melhorar sua vida!'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Mostra diálogo de logout
+  void _showLogoutDialog(AuthController authController) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sair'),
+        content: const Text('Tem certeza que deseja sair da sua conta?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              authController.signOut();
+            },
+            child: const Text('Sair'),
+          ),
+        ],
+      ),
+    );
+  }
+} 

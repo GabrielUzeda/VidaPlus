@@ -49,9 +49,9 @@ class SplashPage extends StatelessWidget {
             
             // Subtítulo
             Text(
-              'Transforme seus hábitos',
+              'Seus hábitos, sua vida',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: Colors.white.withOpacity(0.8),
               ),
             ),
             

@@ -7,6 +7,8 @@ import '../../../domain/entities/habit_entity.dart';
 import 'widgets/habit_card.dart';
 import 'widgets/progress_summary.dart';
 import 'widgets/add_habit_dialog.dart';
+import 'history_page.dart';
+import 'profile_page.dart';
 
 // Página principal do aplicativo
 class HomePage extends StatefulWidget {
@@ -295,58 +297,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Página de Progresso (placeholder)
+  // Página de Progresso - agora usa a HistoryPage
   Widget _buildProgressPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.trending_up, size: 64),
-          SizedBox(height: 16),
-          Text(
-            'Página de Progresso',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          Text('Em desenvolvimento...'),
-        ],
-      ),
-    );
+    return const HistoryPage();
   }
 
-  // Página de Perfil (placeholder)
+  // Página de Perfil - agora usa a ProfilePage
   Widget _buildProfilePage() {
-    return Consumer<AuthController>(
-      builder: (context, authController, _) {
-        final user = authController.user;
-        
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                child: Text(
-                  user?.name.substring(0, 1).toUpperCase() ?? 'U',
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                user?.name ?? 'Usuário',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(user?.email ?? ''),
-              const SizedBox(height: 32),
-              const Text('Página de Perfil'),
-              const Text('Em desenvolvimento...'),
-            ],
-          ),
-        );
-      },
-    );
+    return const ProfilePage();
   }
 
   // Manipula toque no hábito (check-in)

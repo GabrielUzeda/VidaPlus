@@ -183,27 +183,31 @@ class FirebaseAuthDatasource {
     return await snapshot.ref.getDownloadURL();
   }
 
-  // Trata exceções de autenticação do Firebase
+  // Tratamento de erros de autenticação com mensagens amigáveis
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
-        return 'Usuário não encontrado';
+        return 'Este email não está cadastrado. Verifique o email ou crie uma conta.';
       case 'wrong-password':
-        return 'Senha incorreta';
+        return 'Senha incorreta. Verifique sua senha e tente novamente.';
+      case 'invalid-credential':
+        return 'Email ou senha incorretos. Verifique seus dados e tente novamente.';
       case 'email-already-in-use':
-        return 'Este email já está em uso';
+        return 'Este email já possui uma conta. Faça login ou use outro email.';
       case 'weak-password':
-        return 'A senha é muito fraca';
+        return 'Senha muito fraca. Use pelo menos 6 caracteres.';
       case 'invalid-email':
-        return 'Email inválido';
+        return 'Email inválido. Verifique o formato do email.';
       case 'user-disabled':
-        return 'Usuário desabilitado';
+        return 'Esta conta foi desabilitada. Entre em contato com o suporte.';
       case 'too-many-requests':
-        return 'Muitas tentativas. Tente novamente mais tarde';
+        return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
       case 'operation-not-allowed':
-        return 'Operação não permitida';
+        return 'Operação não permitida. Entre em contato com o suporte.';
+      case 'network-request-failed':
+        return 'Erro de conexão. Verifique sua internet e tente novamente.';
       default:
-        return 'Erro de autenticação: ${e.message}';
+        return 'Erro inesperado. Tente novamente ou entre em contato com o suporte.';
     }
   }
 } 

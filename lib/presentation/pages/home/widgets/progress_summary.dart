@@ -222,18 +222,18 @@ class ProgressSummary extends StatelessWidget {
     return Colors.grey;
   }
 
-  // Obtém mensagem motivacional baseada no progresso
+  // Mensagens motivacionais baseadas no progresso
   String _getMotivationalMessage(double completionRate, int completed, int total) {
     if (completionRate >= 1.0) {
-      return 'Incrível! Você completou todos os hábitos hoje! 🎉';
+      return 'Parabéns! Todos os hábitos concluídos hoje! 🎉';
     } else if (completionRate >= 0.75) {
-      return 'Ótimo trabalho! Você está quase lá! 💪';
+      return 'Muito bem! Só faltam alguns! 💪';
     } else if (completionRate >= 0.5) {
-      return 'Bom progresso! Continue assim! 👍';
+      return 'No meio do caminho! Continue! 👍';
     } else if (completionRate > 0) {
-      return 'Você começou bem! Vamos continuar! 🚀';
+      return 'Bom começo! Vamos em frente! 🚀';
     } else {
-      return 'Um novo dia, novas oportunidades! Vamos começar! ⭐';
+      return 'Hora de começar o dia! 🌅';
     }
   }
 } 
