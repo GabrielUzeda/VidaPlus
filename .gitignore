@@ -1,22 +1,26 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
+# =============================================================================
+# Vida+ Flutter App - .gitignore
+# Arquivo limpo e organizado para ignorar arquivos temporários e de build
+# =============================================================================
+
+# OS & Editor Files
+# =============================================================================
 .DS_Store
 .atom/
-.build/
-.buildlog/
 .history
 .svn/
-.swiftpm/
-migrate_working_dir/
+*.swp
+*.tmp
+*~
 
-# IntelliJ related
+# IDEs & Editors
+# =============================================================================
+# IntelliJ IDEA / Android Studio
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
+.idea_modules/
 
 # VS Code
 .vscode/
@@ -25,205 +29,156 @@ migrate_working_dir/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Flutter & Dart
+# =============================================================================
+# Core Flutter/Dart files
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
-.flutter-plugins
-.flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
 .packages
-.pub-cache/
-.pub/
+build/
+.buildlog/
+.build/
+
+# Flutter Web
+web/.last_build_id
+
+# Coverage
+coverage/
+
+# Pub related
 .pub-preload-cache
+doc/api/
 
-# Android related
-**/android/**/gradle-wrapper.jar
-**/android/.gradle
-**/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
-**/android/local.properties
-**/android/**/GeneratedPluginRegistrant.java
-**/android/**/gradle/
-**/android/**/local.properties
-**/android/**/gradle.properties
-**/android/**/gradlew
-**/android/**/gradlew.bat
-**/android/**/key.properties
-**/android/**/android_licenses
+# Android
+# =============================================================================
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/local.properties
+android/key.properties
+android/gradle.properties
+android/**/gradle-wrapper.jar
+android/**/gradlew
+android/**/gradlew.bat
+android/**/GeneratedPluginRegistrant.*
 
-# iOS related
-**/ios/**/*.mode1v3
-**/ios/**/*.mode2v3
-**/ios/**/*.moved-aside
-**/ios/**/*.pbxuser
-**/ios/**/*.perspectivev3
-**/ios/**/*sync/
-**/ios/**/.sconsign.dblite
-**/ios/**/.tags*
-**/ios/**/.vagrant/
-**/ios/**/DerivedData/
-**/ios/**/Icon?
-**/ios/**/Pods/
-**/ios/**/.symlinks/
-**/ios/**/profile
-**/ios/**/xcuserdata
-**/ios/.generated/
-**/ios/Flutter/App.framework/
-**/ios/Flutter/Flutter.framework/
-**/ios/Flutter/Flutter.podspec
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/app.flx
-**/ios/Flutter/app.zip
-**/ios/Flutter/flutter_assets/
-**/ios/Flutter/flutter_export_environment.sh
-**/ios/ServiceDefinitions.json
-**/ios/Runner/GeneratedPluginRegistrant.*
-
-# Web related
-**/web/**/.last_build_id
-**/web/**/dart_tool/
-**/web/**/build/
-**/web/**/.dart_tool/
+# iOS
+# =============================================================================
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+ios/**/*.mode1v3
+ios/**/*.mode2v3
+ios/**/*.moved-aside
+ios/**/*.pbxuser
+ios/**/*.perspectivev3
+ios/**/DerivedData/
+ios/**/Pods/
+ios/**/xcuserdata/
 
 # macOS
-**/macos/Flutter/Flutter-Outputs/
-**/macos/Flutter/Flutter-Generated/
-**/macos/Flutter/Flutter-Inputs.xcfilelist
-**/macos/Flutter/Flutter-Outputs.xcfilelist
+# =============================================================================
+macos/Flutter/Flutter-Outputs/
+macos/Flutter/Flutter-Generated/
 
 # Windows
-**/windows/flutter/generated_plugin_registrant.cc
-**/windows/flutter/generated_plugins.cmake
-**/windows/flutter/generated_plugin_registrant.h
+# =============================================================================
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugins.cmake
+windows/flutter/generated_plugin_registrant.h
 
 # Firebase
-**/android/app/google-services.json
-**/ios/Runner/GoogleService-Info.plist
-**/lib/firebase_options.dart
-**/web/firebase-messaging-sw.js
+# =============================================================================
+# Firebase configuration (keep development versions tracked for local emulators)
+# Uncomment these in production:
+# android/app/google-services.json
+# ios/Runner/GoogleService-Info.plist
+# lib/firebase_options.dart
+web/firebase-messaging-sw.js
 
-# Local development
+# Firebase debug & log files
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+functions-debug.log
+
+# Environment & Secrets
+# =============================================================================
 .env
 .env.*
 !.env.example
 
-# Coverage files
-coverage/
-
+# Testing
+# =============================================================================
 # Test coverage
 **/coverage/
+test_coverage/
 
-# Web specific
-**/web/**/.dart_tool/
-**/web/**/build/
+# Test cache
+test_cache/
+build/test_cache/
 
-# Symbolication related
+# Mockito generated files
+**/*.mocks.dart
+
+# Chrome device testing (Flutter Web)
+.dart_tool/chrome-device/
+
+# Logs & Debug Files
+# =============================================================================
+*.log
+debug.log
+*.debug
+
+# Build & Distribution
+# =============================================================================
+# Symbolication
 app.*.symbols
 
-# Obfuscation related
+# Obfuscation
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Distribution packages
+*.apk
+*.aab
+*.ipa
+*.dmg
 
 # Fastlane
 fastlane/report.xml
 fastlane/Preview.html
-fastlane/screenshots
-fastlane/test_output
+fastlane/screenshots/
+fastlane/test_output/
 fastlane/README.md
 
-# VS Code Flutter extension
-.flutter-plugins-dependencies
+# Temporary & Cache Files
+# =============================================================================
+*.cache
+*.dill
+*.track.dill
+.cache/
 
-# VS Code settings
-.vscode/settings.json
+# Development Tools
+# =============================================================================
+# Flutter Inspector
+.flutter-inspector/
 
-# IntelliJ/Android Studio
-.idea/
-*.iml
-*.iws
-*.ipr
-.idea_modules/
+# FVM (Flutter Version Management)
+.fvm/flutter_sdk
 
-# Gradle
-.gradle/
-build/
-
-# Local configuration file (sdk path, etc)
-local.properties
-
-# Logs
-*.log
-
-# Flutter/Dart
-.flutter-plugins
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-.packages
-build/
-
-# Firebase
-**/android/app/google-services.json
-**/ios/Runner/GoogleService-Info.plist
-**/lib/firebase_options.dart
-**/web/firebase-messaging-sw.js
-
-# VS Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# Android Studio
-.idea/
-.gradle/
-build/
-local.properties
-*.iml
-*.iws
-*.ipr
-.idea/
-
-# iOS
-**/ios/Flutter/Flutter.framework/
-**/ios/Flutter/Flutter.podspec
-**/ios/Flutter/App.framework/
-**/ios/Flutter/AppFrameworkInfo.plist
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/app.flx
-**/ios/Flutter/app.zip
-**/ios/Flutter/flutter_assets/
-**/ios/Flutter/flutter_export_environment.sh
-**/ios/ServiceDefinitions.json
-**/ios/Runner/GeneratedPluginRegistrant.*
-**/ios/Flutter/.last_build_id
-**/ios/Podfile.lock
-**/ios/Podfile
-**/ios/Runner.xcworkspace
-**/ios/Runner.xcodeproj/project.xcworkspace
-**/ios/Runner.xcodeproj/xcuserdata
-
-# Web
-**/web/**/.dart_tool/
-**/web/**/build/
-
-# Test coverage
-**/coverage/
-
-# Fastlane
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots
-fastlane/test_output
-fastlane/README.md
+# Miscellaneous
+# =============================================================================
+*.class
+*.pyc
+migrate_working_dir/
+.swiftpm/
