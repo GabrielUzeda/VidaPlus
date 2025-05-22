@@ -1,6 +1,6 @@
 {
-    "name": "vida_plus",
-    "short_name": "vida_plus",
+    "name": "vidaplus",
+    "short_name": "vidaplus",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

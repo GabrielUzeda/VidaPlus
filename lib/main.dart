@@ -1,106 +1,57 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:vida_plus/core/config/firebase_config.dart';
-import 'package:vida_plus/core/services/dependency_injection.dart' as di;
-import 'package:vida_plus/presentation/controllers/auth_controller.dart';
-import 'package:vida_plus/presentation/controllers/habit_controller.dart';
-import 'package:vida_plus/presentation/pages/login_page.dart';
-import 'package:vida_plus/presentation/pages/home_page.dart';
+import 'features/auth/presentation/pages/login_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: FirebaseConfig.apiKey,
-        appId: FirebaseConfig.appId,
-        messagingSenderId: FirebaseConfig.messagingSenderId,
-        projectId: FirebaseConfig.projectId,
-        storageBucket: FirebaseConfig.storageBucket,
-        authDomain: FirebaseConfig.authDomain,
-      ),
-    );
-  }
+  print('Inicializando Firebase com emuladores locais...');
   
-  await di.init();
-  runApp(const MyApp());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  // Sempre usar emuladores locais para desenvolvimento
+  await _connectToFirebaseEmulator();
+  
+  runApp(const VidaPlusApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => di.serviceLocator<AuthController>()..checkAuthStatus(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => di.serviceLocator<HabitController>(),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Vida+',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.green,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-        ),
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.green,
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-        ),
-        themeMode: ThemeMode.system,
-        home: const AuthWrapper(),
-      ),
-    );
+Future<void> _connectToFirebaseEmulator() async {
+  try {
+    print('Conectando aos emuladores Firebase...');
+    
+    // Conectar ao emulador do Firebase Auth (porta 9099)
+    await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    print('✅ Conectado ao emulador do Firebase Auth na porta 9099');
+    
+    // Conectar ao emulador do Firestore (porta 8080)
+    FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+    print('✅ Conectado ao emulador do Firestore na porta 8080');
+    
+    print('🎉 Todos os emuladores Firebase conectados com sucesso!');
+  } catch (e) {
+    print('❌ Erro ao conectar aos emuladores Firebase: $e');
+    print('Certifique-se de que os emuladores estão rodando com: firebase emulators:start');
   }
 }
 
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
+class VidaPlusApp extends StatelessWidget {
+  const VidaPlusApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authController = Provider.of<AuthController>(context);
-
-    switch (authController.status) {
-      case AuthStatus.authenticated:
-        return const HomePage();
-      case AuthStatus.unauthenticated:
-        return const LoginPage();
-      case AuthStatus.loading:
-      case AuthStatus.initial:
-        return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-      case AuthStatus.error:
-        return Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Ocorreu um erro'),
-                Text(authController.errorMessage ?? 'Erro desconhecido'),
-                ElevatedButton(
-                  onPressed: () => authController.checkAuthStatus(),
-                  child: const Text('Tentar novamente'),
-                ),
-              ],
-            ),
-          ),
-        );
-    }
+    return MaterialApp(
+      title: 'Vida+',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: const LoginPage(),
+      debugShowCheckedModeBanner: false,
+    );
   }
 }
