@@ -80,7 +80,10 @@ class _HistoryPageState extends State<HistoryPage> {
                       const SizedBox(height: 16),
                       SizedBox(
                         height: 200,
-                        child: _buildWeeklyChart(controller),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: _buildWeeklyChart(controller),
+                        ),
                       ),
                     ],
                   ),
@@ -107,14 +110,14 @@ class _HistoryPageState extends State<HistoryPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Últimos 15 Dias - ${DateFormat('MMMM yyyy', 'pt_BR').format(_selectedMonth)}',
+                        'Progresso Mensal - ${DateFormat('MMMM yyyy', 'pt_BR').format(_selectedMonth)}',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
-                        height: 350,
+                        height: 250,
                         child: _buildMonthlyChart(controller),
                       ),
                     ],
@@ -262,107 +265,72 @@ class _HistoryPageState extends State<HistoryPage> {
             }
 
             final monthData = snapshot.data ?? [];
-            
-            // Limita a 15 dias mais recentes para melhor visualização
-            final recentData = monthData.length > 15 
-                ? monthData.sublist(monthData.length - 15)
-                : monthData;
-            
-            final barGroups = recentData.asMap().entries.map((entry) {
-              final index = entry.key;
-              final data = entry.value;
-              
+            final barGroups = monthData.map((data) {
               return BarChartGroupData(
-                x: index,
+                x: data['day'],
                 barRods: [
                   BarChartRodData(
                     toY: data['progress'].toDouble(),
                     color: _getBarColor(data['progress'].toDouble()),
-                    width: 20, // Largura maior para melhor visibilidade
-                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(4)),
+                    width: 12, // Largura menor para caber mais barras
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                   ),
                 ],
               );
             }).toList();
 
-            return RotatedBox(
-              quarterTurns: 1, // Rotaciona 90 graus para barras horizontais
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceEvenly,
-                  maxY: 100,
-                  barTouchData: BarTouchData(
-                    enabled: true,
-                    touchTooltipData: BarTouchTooltipData(
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        final data = recentData[group.x];
-                        final day = data['day'];
-                        final progress = data['progress'].toInt();
-                        return BarTooltipItem(
-                          'Dia $day\n$progress%',
-                          const TextStyle(color: Colors.white),
-                        );
-                      },
-                    ),
-                  ),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 35,
-                        getTitlesWidget: (value, meta) {
-                          if (value.toInt() < recentData.length) {
-                            final day = recentData[value.toInt()]['day'];
-                            return RotatedBox(
-                              quarterTurns: -1, // Desfaz a rotação do texto
-                              child: Text(
-                                '$day',
-                                style: const TextStyle(fontSize: 10),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                    topTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        getTitlesWidget: (value, meta) {
-                          return RotatedBox(
-                            quarterTurns: -1,
-                            child: Text(
-                              '${value.toInt()}%',
-                              style: const TextStyle(fontSize: 9),
-                            ),
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Container(
+                width: monthData.length * 20.0, // Largura baseada no número de dias
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: 100,
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          final data = monthData[group.x - 1]; // Ajuste do índice
+                          final day = data['day'];
+                          final progress = data['progress'].toInt();
+                          return BarTooltipItem(
+                            'Dia $day\n$progress%',
+                            const TextStyle(color: Colors.white),
                           );
                         },
                       ),
                     ),
-                    bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barGroups: barGroups,
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: true,
-                    horizontalInterval: 20,
-                    verticalInterval: 1,
-                    getDrawingHorizontalLine: (value) {
-                      return FlLine(
-                        color: Colors.grey.withOpacity(0.3),
-                        strokeWidth: 1,
-                      );
-                    },
-                    getDrawingVerticalLine: (value) {
-                      return const FlLine(
-                        color: Colors.transparent,
-                        strokeWidth: 0,
-                      );
-                    },
+                    titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            return Text(
+                              '${value.toInt()}',
+                              style: const TextStyle(fontSize: 10),
+                            );
+                          },
+                        ),
+                      ),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 40,
+                          getTitlesWidget: (value, meta) {
+                            return Text(
+                              '${value.toInt()}%',
+                              style: const TextStyle(fontSize: 10),
+                            );
+                          },
+                        ),
+                      ),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    barGroups: barGroups,
                   ),
                 ),
               ),
