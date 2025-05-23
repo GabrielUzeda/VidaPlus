@@ -21,6 +21,7 @@ import 'domain/usecases/usecases.dart';
 // Presentation Layer
 import 'presentation/controllers/auth_controller.dart';
 import 'presentation/controllers/habits_controller.dart';
+import 'presentation/controllers/theme_controller.dart';
 import 'presentation/pages/splash_page.dart';
 import 'presentation/pages/auth/login_page.dart';
 import 'presentation/pages/home/home_page.dart';
@@ -77,6 +78,11 @@ class VidaPlusApp extends StatelessWidget {
         // Services
         Provider<NotificationService>(
           create: (_) => NotificationService(),
+        ),
+        
+        // Controllers
+        ChangeNotifierProvider<ThemeController>(
+          create: (_) => ThemeController()..initialize(),
         ),
         
         // Datasources
@@ -205,13 +211,13 @@ class VidaPlusApp extends StatelessWidget {
           ),
         ),
       ],
-      child: Consumer<AuthController>(
-        builder: (context, authController, _) {
+      child: Consumer2<AuthController, ThemeController>(
+        builder: (context, authController, themeController, _) {
           return MaterialApp(
             title: 'Vida+',
             theme: _buildLightTheme(),
             darkTheme: _buildDarkTheme(),
-            themeMode: ThemeMode.system,
+            themeMode: themeController.materialThemeMode,
             home: _buildHomePage(authController),
             debugShowCheckedModeBanner: false,
           );

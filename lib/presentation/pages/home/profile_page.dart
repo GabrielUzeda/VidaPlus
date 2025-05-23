@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/habits_controller.dart';
+import '../../controllers/theme_controller.dart';
+import '../../../core/services/notification_service.dart';
 
 // Página de perfil do usuário
 class ProfilePage extends StatefulWidget {
@@ -276,13 +278,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   onTap: _showNotificationSettings,
                 ),
                 
-                _buildProfileOption(
-                  icon: Icons.dark_mode,
-                  title: 'Modo Escuro',
-                  subtitle: 'Seguindo sistema',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Modo escuro ativo automaticamente!')),
+                Consumer<ThemeController>(
+                  builder: (context, themeController, _) {
+                    return _buildProfileOption(
+                      icon: _getThemeIcon(themeController.themeMode),
+                      title: 'Tema do App',
+                      subtitle: themeController.themeMode.label,
+                      onTap: () => themeController.toggleTheme(),
                     );
                   },
                 ),
@@ -359,7 +361,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Obtém imagem de perfil
+  // Obtém imagem de perfil (local ou URL)
   ImageProvider? _getProfileImage(user) {
     if (_selectedImage != null) {
       return FileImage(_selectedImage!);
@@ -368,6 +370,18 @@ class _ProfilePageState extends State<ProfilePage> {
       return NetworkImage(user!.profileImageUrl!);
     }
     return null;
+  }
+
+  // Obtém ícone baseado no tema atual
+  IconData _getThemeIcon(AppThemeMode themeMode) {
+    switch (themeMode) {
+      case AppThemeMode.light:
+        return Icons.light_mode;
+      case AppThemeMode.dark:
+        return Icons.dark_mode;
+      case AppThemeMode.system:
+        return Icons.brightness_auto;
+    }
   }
 
   // Mostra seletor de imagem
@@ -472,17 +486,58 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Mostra configurações de notificação
   void _showNotificationSettings() {
+    final notificationService = context.read<NotificationService>();
+    
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Notificações'),
-        content: const Text('Em breve você poderá personalizar suas notificações aqui!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.notifications),
+              SizedBox(width: 8),
+              Text('Notificações'),
+            ],
           ),
-        ],
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FutureBuilder<bool>(
+                future: notificationService.getNotificationsEnabled(),
+                builder: (context, snapshot) {
+                  final isEnabled = snapshot.data ?? true;
+                  
+                  return SwitchListTile(
+                    title: const Text('Ativar notificações'),
+                    subtitle: Text(
+                      isEnabled 
+                        ? 'Receber lembretes de hábitos'
+                        : 'Notificações desativadas'
+                    ),
+                    value: isEnabled,
+                    onChanged: (value) async {
+                      await notificationService.setNotificationsEnabled(value);
+                      setState(() {});
+                    },
+                    contentPadding: EdgeInsets.zero,
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'As notificações ajudam você a manter seus hábitos em dia!',
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Fechar'),
+            ),
+          ],
+        ),
       ),
     );
   }
