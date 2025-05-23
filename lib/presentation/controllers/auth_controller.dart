@@ -52,7 +52,10 @@ class AuthController extends ChangeNotifier {
       
       // Se usuário logou, inicializa notificações
       if (user != null) {
-        _notificationService.initialize();
+        _notificationService.initialize().then((_) {
+          // Solicita permissões após inicialização
+          _notificationService.requestPermission();
+        });
         _notificationService.scheduleDailyCheckInReminder();
       }
     });

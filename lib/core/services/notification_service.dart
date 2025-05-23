@@ -52,9 +52,6 @@ class NotificationService {
       // Carrega hábitos já agendados
       await _loadScheduledHabits();
 
-      // Solicita permissões automaticamente
-      await requestPermission();
-
       _isInitialized = true;
     } catch (e) {
       // Se a inicialização falhar, marca como não inicializado
@@ -72,37 +69,52 @@ class NotificationService {
 
   // Solicita permissão para notificações (Android 13+)
   Future<bool> requestPermission() async {
-    await _ensureInitialized();
+    if (!_isInitialized || _flutterLocalNotificationsPlugin == null) {
+      print('NotificationService not initialized, cannot request permissions');
+      return false;
+    }
 
     final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
         _flutterLocalNotificationsPlugin?.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidImplementation != null) {
-      // Solicita permissão para notificações
-      final bool? notificationGranted = await androidImplementation.requestNotificationsPermission();
-      
-      // Solicita permissão para alarmes exatos (Android 13+)
-      final bool? exactAlarmsGranted = await androidImplementation.requestExactAlarmsPermission();
-      
-      print('Notification permission: $notificationGranted');
-      print('Exact alarms permission: $exactAlarmsGranted');
-      
-      return (notificationGranted ?? false) && (exactAlarmsGranted ?? false);
+      try {
+        // Solicita permissão para notificações
+        final bool? notificationGranted = await androidImplementation.requestNotificationsPermission();
+        
+        // Solicita permissão para alarmes exatos (Android 13+)
+        final bool? exactAlarmsGranted = await androidImplementation.requestExactAlarmsPermission();
+        
+        print('Notification permission: $notificationGranted');
+        print('Exact alarms permission: $exactAlarmsGranted');
+        
+        return (notificationGranted ?? false) && (exactAlarmsGranted ?? false);
+      } catch (e) {
+        print('Error requesting permissions: $e');
+        return false;
+      }
     }
     return true; // Para outras plataformas
   }
 
   // Verifica se pode agendar alarmes exatos
   Future<bool> canScheduleExactAlarms() async {
-    await _ensureInitialized();
+    if (!_isInitialized || _flutterLocalNotificationsPlugin == null) {
+      return false;
+    }
 
     final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
         _flutterLocalNotificationsPlugin?.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidImplementation != null) {
-      return await androidImplementation.canScheduleExactNotifications() ?? false;
+      try {
+        return await androidImplementation.canScheduleExactNotifications() ?? false;
+      } catch (e) {
+        print('Error checking exact alarms capability: $e');
+        return false;
+      }
     }
     return true; // Para outras plataformas
   }
