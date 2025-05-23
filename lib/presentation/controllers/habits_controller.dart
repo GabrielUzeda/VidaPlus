@@ -298,6 +298,203 @@ class HabitsController extends ChangeNotifier {
     };
   }
 
+  // Calcula dias ativos baseado nos check-ins reais
+  Future<int> getActiveDays(String userId) async {
+    try {
+      // Busca todo o progresso do usuário desde sempre
+      final params = GetProgressParams(
+        userId: userId,
+        startDate: DateTime(2020), // Data bem antiga para pegar todos os dados
+        endDate: DateTime.now(),
+      );
+
+      final progress = await _getHabitsProgressUseCase.call(params);
+      final dailyProgress = progress['dailyProgress'] as Map<String, int>? ?? {};
+      
+      // Conta quantos dias únicos o usuário fez pelo menos 1 check-in
+      return dailyProgress.keys.length;
+    } catch (e) {
+      // Em caso de erro, retorna 0
+      return 0;
+    }
+  }
+
+  // Obtém dados reais do histórico semanal
+  Future<List<Map<String, dynamic>>> getWeeklyHistoryData(String userId) async {
+    try {
+      final now = DateTime.now();
+      final weekStart = now.subtract(Duration(days: now.weekday - 1)); // Segunda-feira
+      
+      final params = GetProgressParams(
+        userId: userId,
+        startDate: weekStart,
+        endDate: now,
+      );
+
+      final progress = await _getHabitsProgressUseCase.call(params);
+      final dailyProgress = progress['dailyProgress'] as Map<String, int>? ?? {};
+      
+      // Gera dados para os últimos 7 dias
+      final weekData = <Map<String, dynamic>>[];
+      
+      for (int i = 0; i < 7; i++) {
+        final date = weekStart.add(Duration(days: i));
+        final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        final checkInsCount = dailyProgress[dateKey] ?? 0;
+        
+        // Calcula porcentagem baseada no número de hábitos do dia
+        final totalHabitsOnDate = _habits.where((habit) => 
+          habit.createdAt.isBefore(date.add(const Duration(days: 1)))
+        ).length;
+        
+        final progressPercent = totalHabitsOnDate > 0 
+          ? (checkInsCount / totalHabitsOnDate * 100).clamp(0, 100).toDouble()
+          : 0.0;
+        
+        weekData.add({
+          'day': i,
+          'date': date,
+          'progress': progressPercent,
+          'checkIns': checkInsCount,
+          'totalHabits': totalHabitsOnDate,
+        });
+      }
+      
+      return weekData;
+    } catch (e) {
+      // Em caso de erro, retorna dados vazios
+      return List.generate(7, (index) => {
+        'day': index,
+        'date': DateTime.now().subtract(Duration(days: 6 - index)),
+        'progress': 0.0,
+        'checkIns': 0,
+        'totalHabits': 0,
+      });
+    }
+  }
+
+  // Obtém dados reais do histórico mensal
+  Future<List<Map<String, dynamic>>> getMonthlyHistoryData(String userId, DateTime month) async {
+    try {
+      final firstDay = DateTime(month.year, month.month, 1);
+      final lastDay = DateTime(month.year, month.month + 1, 0);
+      
+      final params = GetProgressParams(
+        userId: userId,
+        startDate: firstDay,
+        endDate: lastDay,
+      );
+
+      final progress = await _getHabitsProgressUseCase.call(params);
+      final dailyProgress = progress['dailyProgress'] as Map<String, int>? ?? {};
+      
+      // Gera dados para todos os dias do mês
+      final monthData = <Map<String, dynamic>>[];
+      
+      for (int day = 1; day <= lastDay.day; day++) {
+        final date = DateTime(month.year, month.month, day);
+        final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        final checkInsCount = dailyProgress[dateKey] ?? 0;
+        
+        // Calcula porcentagem baseada no número de hábitos do dia
+        final totalHabitsOnDate = _habits.where((habit) => 
+          habit.createdAt.isBefore(date.add(const Duration(days: 1)))
+        ).length;
+        
+        final progressPercent = totalHabitsOnDate > 0 
+          ? (checkInsCount / totalHabitsOnDate * 100).clamp(0, 100).toDouble()
+          : 0.0;
+        
+        monthData.add({
+          'day': day,
+          'date': date,
+          'progress': progressPercent,
+          'checkIns': checkInsCount,
+          'totalHabits': totalHabitsOnDate,
+        });
+      }
+      
+      return monthData;
+    } catch (e) {
+      // Em caso de erro, retorna dados vazios
+      final lastDay = DateTime(month.year, month.month + 1, 0);
+      return List.generate(lastDay.day, (index) => {
+        'day': index + 1,
+        'date': DateTime(month.year, month.month, index + 1),
+        'progress': 0.0,
+        'checkIns': 0,
+        'totalHabits': 0,
+      });
+    }
+  }
+
+  // Obtém estatísticas reais de um hábito específico
+  Future<Map<String, dynamic>> getHabitRealStats(String habitId) async {
+    try {
+      // Busca histórico de check-ins do hábito
+      final history = await getHabitCheckInHistory(habitId: habitId);
+      
+      if (history.isEmpty) {
+        return {
+          'totalCheckIns': 0,
+          'currentStreak': 0,
+          'longestStreak': 0,
+          'completionRate': 0.0,
+        };
+      }
+      
+      // Calcula sequência atual
+      int currentStreak = 0;
+      final today = DateTime.now();
+      var currentDate = DateTime(today.year, today.month, today.day);
+      
+      // Verifica se tem check-in hoje
+      final hasCheckInToday = history.any((checkIn) {
+        final checkInDate = DateTime(checkIn.date.year, checkIn.date.month, checkIn.date.day);
+        return checkInDate.isAtSameMomentAs(currentDate);
+      });
+      
+      if (hasCheckInToday) {
+        currentStreak = 1;
+        currentDate = currentDate.subtract(const Duration(days: 1));
+        
+        // Conta dias consecutivos para trás
+        while (history.any((checkIn) {
+          final checkInDate = DateTime(checkIn.date.year, checkIn.date.month, checkIn.date.day);
+          return checkInDate.isAtSameMomentAs(currentDate);
+        })) {
+          currentStreak++;
+          currentDate = currentDate.subtract(const Duration(days: 1));
+        }
+      }
+      
+      // Calcula maior sequência (implementação simplificada)
+      int longestStreak = currentStreak;
+      
+      // Calcula taxa de conclusão (últimos 30 dias)
+      final thirtyDaysAgo = today.subtract(const Duration(days: 30));
+      final recentHistory = history.where((checkIn) => 
+        checkIn.date.isAfter(thirtyDaysAgo)
+      ).toList();
+      
+      final completionRate = recentHistory.length / 30.0 * 100;
+      
+      return {
+        'totalCheckIns': history.length,
+        'currentStreak': currentStreak,
+        'longestStreak': longestStreak,
+        'completionRate': completionRate.clamp(0, 100),
+      };
+    } catch (e) {
+      return {
+        'totalCheckIns': 0,
+        'currentStreak': 0,
+        'longestStreak': 0,
+        'completionRate': 0.0,
+      };
+    }
+  }
+
   // Remove check-in de um hábito (desfazer)
   Future<void> undoCheckIn({
     required String habitId,

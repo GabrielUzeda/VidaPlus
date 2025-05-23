@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../controllers/habits_controller.dart';
 import '../../../domain/entities/habit_entity.dart';
+import '../../controllers/auth_controller.dart';
 
 // Página de histórico com gráficos de progresso
 class HistoryPage extends StatefulWidget {
@@ -159,194 +160,222 @@ class _HistoryPageState extends State<HistoryPage> {
 
   // Constrói gráfico semanal
   Widget _buildWeeklyChart(HabitsController controller) {
-    final weekData = _getWeeklyData(controller);
-    
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(show: false),
-        titlesData: FlTitlesData(
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  '${value.toInt()}%',
-                  style: const TextStyle(fontSize: 12),
-                );
-              },
-            ),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-                return Text(
-                  days[value.toInt() % 7],
-                  style: const TextStyle(fontSize: 12),
-                );
-              },
-            ),
-          ),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        borderData: FlBorderData(show: false),
-        lineBarsData: [
-          LineChartBarData(
-            spots: weekData,
-            isCurved: true,
-            color: Theme.of(context).colorScheme.primary,
-            barWidth: 3,
-            dotData: const FlDotData(show: true),
-            belowBarData: BarAreaData(
-              show: true,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            ),
-          ),
-        ],
-        minY: 0,
-        maxY: 100,
-      ),
+    return Consumer<AuthController>(
+      builder: (context, authController, _) {
+        final userId = authController.user?.id;
+        if (userId == null) {
+          return const Center(child: Text('Usuário não encontrado'));
+        }
+
+        return FutureBuilder<List<Map<String, dynamic>>>(
+          future: controller.getWeeklyHistoryData(userId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final weekData = snapshot.data ?? [];
+            final spots = weekData.map((data) => 
+              FlSpot(data['day'].toDouble(), data['progress'].toDouble())
+            ).toList();
+
+            return LineChart(
+              LineChartData(
+                gridData: FlGridData(show: false),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()}%',
+                          style: const TextStyle(fontSize: 12),
+                        );
+                      },
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                        return Text(
+                          days[value.toInt() % 7],
+                          style: const TextStyle(fontSize: 12),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    color: Theme.of(context).colorScheme.primary,
+                    barWidth: 3,
+                    dotData: const FlDotData(show: true),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    ),
+                  ),
+                ],
+                minY: 0,
+                maxY: 100,
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
   // Constrói gráfico mensal
   Widget _buildMonthlyChart(HabitsController controller) {
-    final monthData = _getMonthlyData(controller);
-    
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: 100,
-        barTouchData: BarTouchData(enabled: false),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  '${value.toInt()}',
-                  style: const TextStyle(fontSize: 10),
-                );
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  '${value.toInt()}%',
-                  style: const TextStyle(fontSize: 10),
-                );
-              },
-            ),
-          ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        borderData: FlBorderData(show: false),
-        barGroups: monthData.map((data) {
-          return BarChartGroupData(
-            x: data.x.toInt(),
-            barRods: [
-              BarChartRodData(
-                toY: data.y,
-                color: _getBarColor(data.y),
-                width: 16,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+    return Consumer<AuthController>(
+      builder: (context, authController, _) {
+        final userId = authController.user?.id;
+        if (userId == null) {
+          return const Center(child: Text('Usuário não encontrado'));
+        }
+
+        return FutureBuilder<List<Map<String, dynamic>>>(
+          future: controller.getMonthlyHistoryData(userId, _selectedMonth),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final monthData = snapshot.data ?? [];
+            final barGroups = monthData.map((data) {
+              return BarChartGroupData(
+                x: data['day'],
+                barRods: [
+                  BarChartRodData(
+                    toY: data['progress'].toDouble(),
+                    color: _getBarColor(data['progress'].toDouble()),
+                    width: 16,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                  ),
+                ],
+              );
+            }).toList();
+
+            return BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: 100,
+                barTouchData: BarTouchData(enabled: false),
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()}',
+                          style: const TextStyle(fontSize: 10),
+                        );
+                      },
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()}%',
+                          style: const TextStyle(fontSize: 10),
+                        );
+                      },
+                    ),
+                  ),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                barGroups: barGroups,
               ),
-            ],
-          );
-        }).toList(),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
   // Constrói card de estatística por hábito
   Widget _buildHabitStatCard(HabitEntity habit, HabitsController controller) {
-    // Calcula estatísticas reais do hábito
-    final isCompletedToday = controller.isHabitCompletedToday(habit.id);
-    
-    // Para simular taxa de conclusão (em uma implementação real, isso viria do histórico)
-    final completionRate = isCompletedToday ? 100 : 0;
-    final streak = isCompletedToday ? 1 : 0; // Simplificado para demo
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Card(
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: _getProgressColor(completionRate.toDouble()),
-            child: Text(
-              '$completionRate%',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+    return Consumer<AuthController>(
+      builder: (context, authController, _) {
+        return FutureBuilder<Map<String, dynamic>>(
+          future: controller.getHabitRealStats(habit.id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Card(
+                  child: ListTile(
+                    leading: const CircularProgressIndicator(),
+                    title: Text(habit.name),
+                    subtitle: Text(habit.frequency.displayName),
+                  ),
+                ),
+              );
+            }
+
+            final stats = snapshot.data ?? {};
+            final completionRate = (stats['completionRate'] ?? 0.0).toDouble();
+            final currentStreak = stats['currentStreak'] ?? 0;
+            final isCompletedToday = controller.isHabitCompletedToday(habit.id);
+            
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Card(
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: _getProgressColor(completionRate),
+                    child: Text(
+                      '${completionRate.toInt()}%',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  title: Text(habit.name),
+                  subtitle: Text('${habit.frequency.displayName} • Sequência: $currentStreak dias'),
+                  trailing: Icon(
+                    isCompletedToday ? Icons.check_circle : Icons.pending,
+                    color: _getProgressColor(completionRate),
+                  ),
+                ),
               ),
-            ),
-          ),
-          title: Text(habit.name),
-          subtitle: Text('${habit.frequency.displayName} • Sequência: $streak dias'),
-          trailing: Icon(
-            isCompletedToday ? Icons.check_circle : Icons.pending,
-            color: _getProgressColor(completionRate.toDouble()),
-          ),
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
   // Obtém dados semanais baseados nos hábitos reais
   List<FlSpot> _getWeeklyData(HabitsController controller) {
-    final todayStats = controller.getTodayStats();
-    final completionRate = todayStats['completionRate'] as double;
-    final progressPercent = (completionRate * 100).clamp(0, 100).toDouble();
-    
-    // Simula dados dos últimos 7 dias baseado no progresso atual
-    // Em uma implementação real, isso buscaria dados históricos do banco
-    return List.generate(7, (index) {
-      if (index == 6) {
-        // Hoje - usa dados reais
-        return FlSpot(index.toDouble(), progressPercent);
-      } else {
-        // Dias anteriores - simula variação baseada no progresso atual
-        final variation = (index - 3) * 10;
-        final dayProgress = (progressPercent + variation).clamp(0, 100).toDouble();
-        return FlSpot(index.toDouble(), dayProgress);
-      }
-    });
+    // Usar dados reais será implementado via FutureBuilder na UI
+    // Por enquanto retorna dados vazios para forçar o uso do FutureBuilder
+    return List.generate(7, (index) => FlSpot(index.toDouble(), 0));
   }
 
   // Obtém dados mensais baseados nos hábitos reais 
   List<FlSpot> _getMonthlyData(HabitsController controller) {
+    // Usar dados reais será implementado via FutureBuilder na UI
+    // Por enquanto retorna dados vazios para forçar o uso do FutureBuilder
     final daysInMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
-    final todayStats = controller.getTodayStats();
-    final completionRate = todayStats['completionRate'] as double;
-    final progressPercent = (completionRate * 100).clamp(0, 100).toDouble();
-    final today = DateTime.now().day;
-    
-    return List.generate(daysInMonth, (index) {
-      final day = index + 1;
-      
-      if (day == today && _selectedMonth.month == DateTime.now().month && _selectedMonth.year == DateTime.now().year) {
-        // Hoje - usa dados reais
-        return FlSpot(day.toDouble(), progressPercent);
-      } else if (day > today && _selectedMonth.month == DateTime.now().month && _selectedMonth.year == DateTime.now().year) {
-        // Dias futuros no mês atual - sem dados
-        return FlSpot(day.toDouble(), 0);
-      } else {
-        // Dias passados - simula variação baseada no progresso atual
-        final variation = (day % 7) * 15;
-        final dayProgress = ((progressPercent + variation) * 0.8).clamp(0, 100).toDouble();
-        return FlSpot(day.toDouble(), dayProgress);
-      }
-    });
+    return List.generate(daysInMonth, (index) => FlSpot((index + 1).toDouble(), 0));
   }
 
   // Obtém cor da barra baseada no progresso

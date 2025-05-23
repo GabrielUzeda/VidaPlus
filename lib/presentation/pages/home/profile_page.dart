@@ -258,7 +258,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildStatItem('Dias Ativos', '${DateTime.now().difference(user?.createdAt ?? DateTime.now()).inDays}'),
+                            FutureBuilder<int>(
+                              future: user?.id != null ? habitsController.getActiveDays(user!.id) : Future.value(0),
+                              builder: (context, snapshot) {
+                                final activeDays = snapshot.data ?? 0;
+                                return _buildStatItem('Dias Ativos', '$activeDays');
+                              },
+                            ),
                             _buildStatItem('Hábitos', '$totalHabits'),
                             _buildStatItem('Concluídos', '$completedHabits'),
                           ],
