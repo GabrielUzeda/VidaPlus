@@ -52,6 +52,9 @@ class NotificationService {
       // Carrega hábitos já agendados
       await _loadScheduledHabits();
 
+      // Solicita permissões automaticamente
+      await requestPermission();
+
       _isInitialized = true;
     } catch (e) {
       // Se a inicialização falhar, marca como não inicializado
@@ -76,8 +79,30 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidImplementation != null) {
-      final bool? granted = await androidImplementation.requestNotificationsPermission();
-      return granted ?? false;
+      // Solicita permissão para notificações
+      final bool? notificationGranted = await androidImplementation.requestNotificationsPermission();
+      
+      // Solicita permissão para alarmes exatos (Android 13+)
+      final bool? exactAlarmsGranted = await androidImplementation.requestExactAlarmsPermission();
+      
+      print('Notification permission: $notificationGranted');
+      print('Exact alarms permission: $exactAlarmsGranted');
+      
+      return (notificationGranted ?? false) && (exactAlarmsGranted ?? false);
+    }
+    return true; // Para outras plataformas
+  }
+
+  // Verifica se pode agendar alarmes exatos
+  Future<bool> canScheduleExactAlarms() async {
+    await _ensureInitialized();
+
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        _flutterLocalNotificationsPlugin?.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidImplementation != null) {
+      return await androidImplementation.canScheduleExactNotifications() ?? false;
     }
     return true; // Para outras plataformas
   }
@@ -139,18 +164,39 @@ class NotificationService {
       const NotificationDetails platformChannelSpecifics =
           NotificationDetails(android: androidPlatformChannelSpecifics);
 
-      // Agenda a notificação para o horário específico
-      await _flutterLocalNotificationsPlugin!.zonedSchedule(
-        habit.id.hashCode, // ID único para o hábito
-        'Hora do seu hábito! 🌟',
-        'Não se esqueça de: ${habit.name}',
-        scheduledTZ,
-        platformChannelSpecifics,
-        payload: habit.id,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time, // Repete diariamente no mesmo horário
-      );
+      // Verifica se pode usar alarmes exatos
+      final canUseExactAlarms = await canScheduleExactAlarms();
+      
+      if (canUseExactAlarms) {
+        // Agenda a notificação para o horário específico (exact alarm)
+        await _flutterLocalNotificationsPlugin!.zonedSchedule(
+          habit.id.hashCode, // ID único para o hábito
+          'Hora do seu hábito! 🌟',
+          'Não se esqueça de: ${habit.name}',
+          scheduledTZ,
+          platformChannelSpecifics,
+          payload: habit.id,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time, // Repete diariamente no mesmo horário
+        );
+        print('Scheduled exact alarm for habit: ${habit.name} at ${habit.recommendedTime}');
+      } else {
+        // Usa agendamento inexato (pode ter alguns minutos de diferença)
+        await _flutterLocalNotificationsPlugin!.zonedSchedule(
+          habit.id.hashCode, // ID único para o hábito
+          'Hora do seu hábito! 🌟',
+          'Não se esqueça de: ${habit.name}',
+          scheduledTZ,
+          platformChannelSpecifics,
+          payload: habit.id,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, // Força inexact
+        );
+        print('Scheduled inexact alarm for habit: ${habit.name} at ${habit.recommendedTime} (exact alarms not available)');
+      }
 
       // Marca como agendado
       await _markHabitAsScheduled(habit.id);

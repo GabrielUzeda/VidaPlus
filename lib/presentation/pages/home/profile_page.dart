@@ -487,6 +487,7 @@ class _ProfilePageState extends State<ProfilePage> {
   // Mostra configurações de notificação
   void _showNotificationSettings() {
     final notificationService = context.read<NotificationService>();
+    final habitsController = context.read<HabitsController>();
     
     showDialog(
       context: context,
@@ -523,6 +524,58 @@ class _ProfilePageState extends State<ProfilePage> {
                   );
                 },
               ),
+              const SizedBox(height: 16),
+              
+              // Status das permissões
+              FutureBuilder<bool>(
+                future: notificationService.canScheduleExactAlarms(),
+                builder: (context, snapshot) {
+                  final canScheduleExact = snapshot.data ?? false;
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: canScheduleExact 
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: canScheduleExact ? Colors.green : Colors.orange,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          canScheduleExact ? Icons.check_circle : Icons.warning,
+                          color: canScheduleExact ? Colors.green : Colors.orange,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            canScheduleExact 
+                              ? 'Alarmes exatos: Funcionando'
+                              : 'Alarmes inexatos: Pode ter atraso de alguns minutos',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Botão para verificar permissões
+              TextButton.icon(
+                onPressed: () async {
+                  await habitsController.checkNotificationPermissions();
+                  setState(() {});
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Verificar Permissões'),
+              ),
+              
               const SizedBox(height: 16),
               Text(
                 'As notificações ajudam você a manter seus hábitos em dia!',

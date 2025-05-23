@@ -105,6 +105,9 @@ class FakeNotificationService implements NotificationService {
   Future<bool> requestPermission() async => true;
 
   @override
+  Future<bool> canScheduleExactAlarms() async => true;
+
+  @override
   Future<void> scheduleHabitReminder(habit) async {}
 
   @override

@@ -352,4 +352,28 @@ class HabitsController extends ChangeNotifier {
   void clearError() {
     _clearError();
   }
+
+  // Verifica e solicita permissões de notificação
+  Future<bool> checkNotificationPermissions() async {
+    try {
+      final hasPermissions = await _notificationService.requestPermission();
+      if (!hasPermissions) {
+        _setError('Permissões de notificação são necessárias para lembretes de hábitos');
+      }
+      return hasPermissions;
+    } catch (e) {
+      print('Error checking notification permissions: $e');
+      return false;
+    }
+  }
+
+  // Verifica se pode usar alarmes exatos
+  Future<bool> canUseExactAlarms() async {
+    try {
+      return await _notificationService.canScheduleExactAlarms();
+    } catch (e) {
+      print('Error checking exact alarms capability: $e');
+      return false;
+    }
+  }
 } 
