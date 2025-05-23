@@ -107,14 +107,14 @@ class _HistoryPageState extends State<HistoryPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Progresso Mensal - ${DateFormat('MMMM yyyy', 'pt_BR').format(_selectedMonth)}',
+                        'Últimos 15 Dias - ${DateFormat('MMMM yyyy', 'pt_BR').format(_selectedMonth)}',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
-                        height: 250,
+                        height: 350,
                         child: _buildMonthlyChart(controller),
                       ),
                     ],
@@ -214,10 +214,20 @@ class _HistoryPageState extends State<HistoryPage> {
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
-                    isCurved: true,
+                    isCurved: false,
                     color: Theme.of(context).colorScheme.primary,
                     barWidth: 3,
-                    dotData: const FlDotData(show: true),
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 4,
+                          color: Theme.of(context).colorScheme.primary,
+                          strokeWidth: 2,
+                          strokeColor: Colors.white,
+                        );
+                      },
+                    ),
                     belowBarData: BarAreaData(
                       show: true,
                       color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
@@ -226,6 +236,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 ],
                 minY: 0,
                 maxY: 100,
+                clipData: FlClipData.all(),
               ),
             );
           },
@@ -251,55 +262,109 @@ class _HistoryPageState extends State<HistoryPage> {
             }
 
             final monthData = snapshot.data ?? [];
-            final barGroups = monthData.map((data) {
+            
+            // Limita a 15 dias mais recentes para melhor visualização
+            final recentData = monthData.length > 15 
+                ? monthData.sublist(monthData.length - 15)
+                : monthData;
+            
+            final barGroups = recentData.asMap().entries.map((entry) {
+              final index = entry.key;
+              final data = entry.value;
+              
               return BarChartGroupData(
-                x: data['day'],
+                x: index,
                 barRods: [
                   BarChartRodData(
                     toY: data['progress'].toDouble(),
                     color: _getBarColor(data['progress'].toDouble()),
-                    width: 16,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    width: 20, // Largura maior para melhor visibilidade
+                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(4)),
                   ),
                 ],
               );
             }).toList();
 
-            return BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceAround,
-                maxY: 100,
-                barTouchData: BarTouchData(enabled: false),
-                titlesData: FlTitlesData(
-                  show: true,
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}',
-                          style: const TextStyle(fontSize: 10),
+            return RotatedBox(
+              quarterTurns: 1, // Rotaciona 90 graus para barras horizontais
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceEvenly,
+                  maxY: 100,
+                  barTouchData: BarTouchData(
+                    enabled: true,
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final data = recentData[group.x];
+                        final day = data['day'];
+                        final progress = data['progress'].toInt();
+                        return BarTooltipItem(
+                          'Dia $day\n$progress%',
+                          const TextStyle(color: Colors.white),
                         );
                       },
                     ),
                   ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}%',
-                          style: const TextStyle(fontSize: 10),
-                        );
-                      },
+                  titlesData: FlTitlesData(
+                    show: true,
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 35,
+                        getTitlesWidget: (value, meta) {
+                          if (value.toInt() < recentData.length) {
+                            final day = recentData[value.toInt()]['day'];
+                            return RotatedBox(
+                              quarterTurns: -1, // Desfaz a rotação do texto
+                              child: Text(
+                                '$day',
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
                     ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 30,
+                        getTitlesWidget: (value, meta) {
+                          return RotatedBox(
+                            quarterTurns: -1,
+                            child: Text(
+                              '${value.toInt()}%',
+                              style: const TextStyle(fontSize: 9),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  borderData: FlBorderData(show: false),
+                  barGroups: barGroups,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: true,
+                    horizontalInterval: 20,
+                    verticalInterval: 1,
+                    getDrawingHorizontalLine: (value) {
+                      return FlLine(
+                        color: Colors.grey.withOpacity(0.3),
+                        strokeWidth: 1,
+                      );
+                    },
+                    getDrawingVerticalLine: (value) {
+                      return const FlLine(
+                        color: Colors.transparent,
+                        strokeWidth: 0,
+                      );
+                    },
+                  ),
                 ),
-                borderData: FlBorderData(show: false),
-                barGroups: barGroups,
               ),
             );
           },
