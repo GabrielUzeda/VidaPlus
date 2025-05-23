@@ -139,7 +139,7 @@ class AuthController extends ChangeNotifier {
         await _notificationService.cancelAllNotifications();
       } catch (e) {
         // Erro ao cancelar notificações não deve impedir o logout
-        print('Warning: Could not cancel notifications during logout: $e');
+        debugPrint('Warning: Could not cancel notifications during logout: $e');
       }
       
       notifyListeners();

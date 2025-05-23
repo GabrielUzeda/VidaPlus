@@ -451,12 +451,14 @@ class _ProfilePageState extends State<ProfilePage> {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: source);
       
+      if (!mounted) return;
       if (pickedFile != null) {
         setState(() {
           _selectedImage = File(pickedFile.path);
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao selecionar imagem: $e')),
       );
@@ -483,6 +485,7 @@ class _ProfilePageState extends State<ProfilePage> {
         profileImagePath: _selectedImage?.path,
       );
 
+      if (!mounted) return;
       setState(() {
         _isEditing = false;
         _selectedImage = null;
@@ -495,6 +498,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao atualizar perfil: $e')),
       );
@@ -555,8 +559,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: canScheduleExact 
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: canScheduleExact ? Colors.green : Colors.orange,

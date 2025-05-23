@@ -62,7 +62,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -100,7 +100,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -233,7 +233,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     ),
                   ),
                 ],
@@ -281,7 +281,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Container(
+              child: SizedBox(
                 width: monthData.length * 20.0, // Largura baseada no número de dias
                 child: BarChart(
                   BarChartData(
@@ -394,21 +394,6 @@ class _HistoryPageState extends State<HistoryPage> {
         );
       },
     );
-  }
-
-  // Obtém dados semanais baseados nos hábitos reais
-  List<FlSpot> _getWeeklyData(HabitsController controller) {
-    // Usar dados reais será implementado via FutureBuilder na UI
-    // Por enquanto retorna dados vazios para forçar o uso do FutureBuilder
-    return List.generate(7, (index) => FlSpot(index.toDouble(), 0));
-  }
-
-  // Obtém dados mensais baseados nos hábitos reais 
-  List<FlSpot> _getMonthlyData(HabitsController controller) {
-    // Usar dados reais será implementado via FutureBuilder na UI
-    // Por enquanto retorna dados vazios para forçar o uso do FutureBuilder
-    final daysInMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
-    return List.generate(daysInMonth, (index) => FlSpot((index + 1).toDouble(), 0));
   }
 
   // Obtém cor da barra baseada no progresso

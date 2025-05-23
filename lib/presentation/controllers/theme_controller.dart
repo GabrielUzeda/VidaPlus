@@ -72,7 +72,7 @@ class ThemeController extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       // Se houver erro, usa as configurações padrão
-      print('Erro ao carregar tema/cor: $e');
+      debugPrint('Erro ao carregar tema/cor: $e');
     }
   }
 
@@ -87,7 +87,7 @@ class ThemeController extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_themeKey, mode.name);
     } catch (e) {
-      print('Erro ao salvar tema: $e');
+      debugPrint('Erro ao salvar tema: $e');
     }
   }
 
@@ -102,7 +102,7 @@ class ThemeController extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_colorKey, color.name);
     } catch (e) {
-      print('Erro ao salvar cor: $e');
+      debugPrint('Erro ao salvar cor: $e');
     }
   }
 

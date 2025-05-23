@@ -63,7 +63,7 @@ Future<void> _connectToFirebaseEmulator() async {
   } catch (e) {
     // Em produção, falha silenciosa - conectará ao Firebase real
     // Em desenvolvimento, pode indicar que emuladores não estão rodando
-    print('Erro ao conectar aos emuladores Firebase: $e');
+    debugPrint('Erro ao conectar aos emuladores Firebase: $e');
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import '../../domain/entities/habit_entity.dart';
+import 'package:flutter/foundation.dart';
 
 // Serviço para gerenciar notificações locais
 class NotificationService {
@@ -56,7 +57,7 @@ class NotificationService {
     } catch (e) {
       // Se a inicialização falhar, marca como não inicializado
       // mas não lança exceção para não quebrar o app
-      print('Error initializing notifications: $e');
+      debugPrint('Error initializing notifications: $e');
       _isInitialized = false;
       _flutterLocalNotificationsPlugin = null;
     }
@@ -70,7 +71,7 @@ class NotificationService {
   // Solicita permissão para notificações (Android 13+)
   Future<bool> requestPermission() async {
     if (!_isInitialized || _flutterLocalNotificationsPlugin == null) {
-      print('NotificationService not initialized, cannot request permissions');
+      debugPrint('NotificationService not initialized, cannot request permissions');
       return false;
     }
 
@@ -86,12 +87,12 @@ class NotificationService {
         // Solicita permissão para alarmes exatos (Android 13+)
         final bool? exactAlarmsGranted = await androidImplementation.requestExactAlarmsPermission();
         
-        print('Notification permission: $notificationGranted');
-        print('Exact alarms permission: $exactAlarmsGranted');
+        debugPrint('Notification permission: $notificationGranted');
+        debugPrint('Exact alarms permission: $exactAlarmsGranted');
         
         return (notificationGranted ?? false) && (exactAlarmsGranted ?? false);
       } catch (e) {
-        print('Error requesting permissions: $e');
+        debugPrint('Error requesting permissions: $e');
         return false;
       }
     }
@@ -112,7 +113,7 @@ class NotificationService {
       try {
         return await androidImplementation.canScheduleExactNotifications() ?? false;
       } catch (e) {
-        print('Error checking exact alarms capability: $e');
+        debugPrint('Error checking exact alarms capability: $e');
         return false;
       }
     }
@@ -192,7 +193,7 @@ class NotificationService {
               UILocalNotificationDateInterpretation.absoluteTime,
           matchDateTimeComponents: DateTimeComponents.time, // Repete diariamente no mesmo horário
         );
-        print('Scheduled exact alarm for habit: ${habit.name} at ${habit.recommendedTime}');
+        debugPrint('Scheduled exact alarm for habit: ${habit.name} at ${habit.recommendedTime}');
       } else {
         // Usa agendamento inexato (pode ter alguns minutos de diferença)
         await _flutterLocalNotificationsPlugin!.zonedSchedule(
@@ -207,14 +208,14 @@ class NotificationService {
           matchDateTimeComponents: DateTimeComponents.time,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, // Força inexact
         );
-        print('Scheduled inexact alarm for habit: ${habit.name} at ${habit.recommendedTime} (exact alarms not available)');
+        debugPrint('Scheduled inexact alarm for habit: ${habit.name} at ${habit.recommendedTime} (exact alarms not available)');
       }
 
       // Marca como agendado
       await _markHabitAsScheduled(habit.id);
     } catch (e) {
       // Silently handle errors during notification scheduling
-      print('Error scheduling habit reminder: $e');
+      debugPrint('Error scheduling habit reminder: $e');
     }
   }
 
@@ -228,7 +229,7 @@ class NotificationService {
       await _removeHabitFromScheduled(habitId);
     } catch (e) {
       // Silently handle errors during notification cancellation
-      print('Error canceling habit reminder: $e');
+      debugPrint('Error canceling habit reminder: $e');
     }
   }
 
@@ -244,7 +245,7 @@ class NotificationService {
     } catch (e) {
       // Silently handle errors during notification cancellation
       // This prevents crashes during logout or app termination
-      print('Error canceling notifications: $e');
+      debugPrint('Error canceling notifications: $e');
     }
   }
 
@@ -294,7 +295,7 @@ class NotificationService {
       );
     } catch (e) {
       // Silently handle errors during notification scheduling
-      print('Error scheduling daily check-in reminder: $e');
+      debugPrint('Error scheduling daily check-in reminder: $e');
     }
   }
 
@@ -355,7 +356,7 @@ class NotificationService {
       );
     } catch (e) {
       // Silently handle errors during notification display
-      print('Error showing notification: $e');
+      debugPrint('Error showing notification: $e');
     }
   }
 
@@ -378,7 +379,7 @@ class NotificationService {
       final scheduledList = prefs.getStringList(_scheduledNotificationsKey) ?? [];
       _scheduledHabits = scheduledList.toSet();
     } catch (e) {
-      print('Error loading scheduled habits: $e');
+      debugPrint('Error loading scheduled habits: $e');
       _scheduledHabits = {};
     }
   }
@@ -389,7 +390,7 @@ class NotificationService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(_scheduledNotificationsKey, _scheduledHabits.toList());
     } catch (e) {
-      print('Error saving scheduled habits: $e');
+      debugPrint('Error saving scheduled habits: $e');
     }
   }
 

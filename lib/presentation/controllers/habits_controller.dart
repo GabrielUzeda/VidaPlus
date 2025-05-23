@@ -559,7 +559,7 @@ class HabitsController extends ChangeNotifier {
       }
       return hasPermissions;
     } catch (e) {
-      print('Error checking notification permissions: $e');
+      debugPrint('Error checking notification permissions: $e');
       return false;
     }
   }
@@ -569,7 +569,7 @@ class HabitsController extends ChangeNotifier {
     try {
       return await _notificationService.canScheduleExactAlarms();
     } catch (e) {
-      print('Error checking exact alarms capability: $e');
+      debugPrint('Error checking exact alarms capability: $e');
       return false;
     }
   }
