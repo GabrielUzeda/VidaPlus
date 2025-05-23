@@ -79,9 +79,9 @@ class _HistoryPageState extends State<HistoryPage> {
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
-                        height: 200,
+                        height: 220,
                         child: Padding(
-                          padding: const EdgeInsets.all(12.0),
+                          padding: const EdgeInsets.all(16.0),
                           child: _buildWeeklyChart(controller),
                         ),
                       ),
@@ -317,7 +317,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 40,
+                          reservedSize: 50,
                           getTitlesWidget: (value, meta) {
                             return Text(
                               '${value.toInt()}%',

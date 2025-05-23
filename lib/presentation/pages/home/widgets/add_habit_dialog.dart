@@ -147,190 +147,192 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
+        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Título
-              Row(
-                children: [
-                  Icon(
-                    isEditing ? Icons.edit : Icons.add_circle_outline,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    isEditing ? 'Editar Hábito' : 'Novo Hábito',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Título
+                Row(
+                  children: [
+                    Icon(
+                      isEditing ? Icons.edit : Icons.add_circle_outline,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 28,
                     ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Campo nome
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome do hábito',
-                  prefixIcon: Icon(Icons.edit),
-                  border: OutlineInputBorder(),
-                  hintText: 'Ex: Beber 2L de água',
-                ),
-                textCapitalization: TextCapitalization.sentences,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Por favor, digite o nome do hábito';
-                  }
-                  if (value.trim().length < 3) {
-                    return 'Nome deve ter pelo menos 3 caracteres';
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 20),
-              
-              // Frequência
-              Text(
-                'Frequência',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: RadioListTile<HabitFrequency>(
-                      title: const Text('Diário'),
-                      subtitle: const Text('Todo dia'),
-                      value: HabitFrequency.daily,
-                      groupValue: _frequency,
-                      onChanged: (value) {
-                        setState(() {
-                          _frequency = value!;
-                        });
-                      },
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  Expanded(
-                    child: RadioListTile<HabitFrequency>(
-                      title: const Text('Semanal'),
-                      subtitle: const Text('1x por semana'),
-                      value: HabitFrequency.weekly,
-                      groupValue: _frequency,
-                      onChanged: (value) {
-                        setState(() {
-                          _frequency = value!;
-                        });
-                      },
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 20),
-              
-              // Horário recomendado
-              Text(
-                'Horário Recomendado (Opcional)',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: _selectTime,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.schedule,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    const SizedBox(width: 12),
+                    Text(
+                      isEditing ? 'Editar Hábito' : 'Novo Hábito',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _recommendedTime != null
-                              ? '${_recommendedTime!.hour.toString().padLeft(2, '0')}:${_recommendedTime!.minute.toString().padLeft(2, '0')}'
-                              : 'Toque para definir um horário',
-                          style: TextStyle(
-                            color: _recommendedTime != null
-                                ? Theme.of(context).colorScheme.onSurface
-                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Campo nome
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome do hábito',
+                    prefixIcon: Icon(Icons.edit),
+                    border: OutlineInputBorder(),
+                    hintText: 'Ex: Beber 2L de água',
+                  ),
+                  textCapitalization: TextCapitalization.sentences,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Por favor, digite o nome do hábito';
+                    }
+                    if (value.trim().length < 3) {
+                      return 'Nome deve ter pelo menos 3 caracteres';
+                    }
+                    return null;
+                  },
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Frequência
+                Text(
+                  'Frequência',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: RadioListTile<HabitFrequency>(
+                        title: const Text('Diário'),
+                        subtitle: const Text('Todo dia'),
+                        value: HabitFrequency.daily,
+                        groupValue: _frequency,
+                        onChanged: (value) {
+                          setState(() {
+                            _frequency = value!;
+                          });
+                        },
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    Expanded(
+                      child: RadioListTile<HabitFrequency>(
+                        title: const Text('Semanal'),
+                        subtitle: const Text('1x por semana'),
+                        value: HabitFrequency.weekly,
+                        groupValue: _frequency,
+                        onChanged: (value) {
+                          setState(() {
+                            _frequency = value!;
+                          });
+                        },
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Horário recomendado
+                Text(
+                  'Horário Recomendado (Opcional)',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: _selectTime,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.schedule,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _recommendedTime != null
+                                ? '${_recommendedTime!.hour.toString().padLeft(2, '0')}:${_recommendedTime!.minute.toString().padLeft(2, '0')}'
+                                : 'Toque para definir um horário',
+                            style: TextStyle(
+                              color: _recommendedTime != null
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      ),
-                      if (_recommendedTime != null)
-                        IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              _recommendedTime = null;
-                            });
-                          },
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              
-              if (_recommendedTime != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  '💡 Você receberá uma notificação neste horário',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-              
-              const SizedBox(height: 32),
-              
-              // Botões
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-                      child: const Text('Cancelar'),
+                        if (_recommendedTime != null)
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _recommendedTime = null;
+                              });
+                            },
+                          ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveHabit,
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(isEditing ? 'Salvar' : 'Criar'),
+                ),
+                
+                if (_recommendedTime != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    '💡 Você receberá uma notificação neste horário',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
-              ),
-            ],
+                
+                const SizedBox(height: 32),
+                
+                // Botões
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                        child: const Text('Cancelar'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _saveHabit,
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(isEditing ? 'Salvar' : 'Criar'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
