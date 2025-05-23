@@ -46,6 +46,7 @@ dependencies:
   
   # Local Notifications
   flutter_local_notifications: ^17.0.0
+  timezone: ^0.9.4
   
   # Image Picker & Cache
   image_picker: ^1.0.7

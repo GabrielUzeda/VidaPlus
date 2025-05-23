@@ -153,7 +153,7 @@ class HabitsController extends ChangeNotifier {
       
       // Atualiza notificação
       if (updatedHabit.recommendedTime != null) {
-        await _notificationService.scheduleHabitReminder(updatedHabit);
+        await _notificationService.rescheduleHabitReminder(updatedHabit);
       } else {
         await _notificationService.cancelHabitReminder(updatedHabit.id);
       }

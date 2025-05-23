@@ -137,6 +137,9 @@ class FakeNotificationService implements NotificationService {
   Future<void> scheduleHabitReminder(habit) async {}
 
   @override
+  Future<void> rescheduleHabitReminder(habit) async {}
+
+  @override
   Future<void> cancelHabitReminder(String habitId) async {}
 
   @override
