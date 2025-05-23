@@ -295,6 +295,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
                 
+                Consumer<ThemeController>(
+                  builder: (context, themeController, _) {
+                    return _buildProfileOption(
+                      icon: Icons.palette,
+                      title: 'Cor do App',
+                      subtitle: themeController.primaryColor.label,
+                      onTap: () => _showColorPicker(themeController),
+                    );
+                  },
+                ),
+                
                 _buildProfileOption(
                   icon: Icons.info,
                   title: 'Sobre o App',
@@ -651,6 +662,70 @@ class _ProfilePageState extends State<ProfilePage> {
               authController.signOut();
             },
             child: const Text('Sair'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Mostra seletor de cor
+  void _showColorPicker(ThemeController themeController) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.palette),
+            SizedBox(width: 8),
+            Text('Escolher Cor'),
+          ],
+        ),
+        content: SizedBox(
+          width: 300,
+          child: GridView.builder(
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+            ),
+            itemCount: AppPrimaryColor.values.length,
+            itemBuilder: (context, index) {
+              final color = AppPrimaryColor.values[index];
+              final isSelected = themeController.primaryColor == color;
+              
+              return GestureDetector(
+                onTap: () {
+                  themeController.setPrimaryColor(color);
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color.color,
+                    shape: BoxShape.circle,
+                    border: isSelected 
+                      ? Border.all(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          width: 3,
+                        )
+                      : null,
+                  ),
+                  child: isSelected
+                    ? const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 20,
+                      )
+                    : null,
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
           ),
         ],
       ),

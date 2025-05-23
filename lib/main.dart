@@ -215,8 +215,8 @@ class VidaPlusApp extends StatelessWidget {
         builder: (context, authController, themeController, _) {
           return MaterialApp(
             title: 'Vida+',
-            theme: _buildLightTheme(),
-            darkTheme: _buildDarkTheme(),
+            theme: _buildLightTheme(themeController.primaryColor.color),
+            darkTheme: _buildDarkTheme(themeController.primaryColor.color),
             themeMode: themeController.materialThemeMode,
             home: _buildHomePage(authController),
             debugShowCheckedModeBanner: false,
@@ -240,11 +240,11 @@ class VidaPlusApp extends StatelessWidget {
   }
 
   // Tema claro
-  ThemeData _buildLightTheme() {
+  ThemeData _buildLightTheme(Color primaryColor) {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFFE91E63), // Cor fúxia personalizada (magenta/pink)
+        seedColor: primaryColor, // Usa cor dinâmica
         brightness: Brightness.light,
       ),
       appBarTheme: const AppBarTheme(
@@ -272,11 +272,11 @@ class VidaPlusApp extends StatelessWidget {
   }
 
   // Tema escuro
-  ThemeData _buildDarkTheme() {
+  ThemeData _buildDarkTheme(Color primaryColor) {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFFE91E63), // Cor fúxia personalizada (magenta/pink)
+        seedColor: primaryColor, // Usa cor dinâmica
         brightness: Brightness.dark,
       ),
       appBarTheme: const AppBarTheme(
