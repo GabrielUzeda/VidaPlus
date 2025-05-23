@@ -79,7 +79,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
-                        height: 220,
+                        height: 175,
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: _buildWeeklyChart(controller),
@@ -117,7 +117,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
-                        height: 250,
+                        height: 175,
                         child: _buildMonthlyChart(controller),
                       ),
                     ],
@@ -217,7 +217,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
-                    isCurved: false,
+                    isCurved: true,
                     color: Theme.of(context).colorScheme.primary,
                     barWidth: 3,
                     dotData: FlDotData(

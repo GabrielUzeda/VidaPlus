@@ -244,7 +244,7 @@ class VidaPlusApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.green,
+        seedColor: const Color(0xFFE91E63), // Cor fúxia personalizada (magenta/pink)
         brightness: Brightness.light,
       ),
       appBarTheme: const AppBarTheme(
@@ -276,7 +276,7 @@ class VidaPlusApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.green,
+        seedColor: const Color(0xFFE91E63), // Cor fúxia personalizada (magenta/pink)
         brightness: Brightness.dark,
       ),
       appBarTheme: const AppBarTheme(
