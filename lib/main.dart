@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -44,14 +45,24 @@ void main() async {
 
 Future<void> _connectToFirebaseEmulator() async {
   try {
+    // Para emuladores Android, usar 10.0.2.2 (IP do host no emulador)
+    // Para outras plataformas, usar localhost
+    String host = 'localhost';
+    
+    // Detectar se está rodando no emulador Android
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      host = '10.0.2.2';
+    }
+    
     // Conectar ao emulador do Firebase Auth (porta 9099)
-    await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    await FirebaseAuth.instance.useAuthEmulator(host, 9099);
     
     // Conectar ao emulador do Firestore (porta 8080)
-    FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+    FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
   } catch (e) {
     // Em produção, falha silenciosa - conectará ao Firebase real
     // Em desenvolvimento, pode indicar que emuladores não estão rodando
+    print('Erro ao conectar aos emuladores Firebase: $e');
   }
 }
 
