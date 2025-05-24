@@ -27,6 +27,11 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     final user = context.read<AuthController>().user;
     _nameController.text = user?.name ?? '';
+    
+    // Debug info sobre o usuário
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _debugUserInfo();
+    });
   }
 
   @override
@@ -73,17 +78,40 @@ class _ProfilePageState extends State<ProfilePage> {
                               CircleAvatar(
                                 radius: 60,
                                 backgroundColor: Colors.white,
-                                backgroundImage: _getProfileImage(user),
-                                child: _getProfileImage(user) == null
-                                    ? Text(
-                                        user?.name.substring(0, 1).toUpperCase() ?? 'U',
-                                        style: TextStyle(
-                                          fontSize: 48,
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.primary,
+                                child: _selectedImage != null
+                                    ? ClipOval(
+                                        child: Image.file(
+                                          _selectedImage!,
+                                          width: 120,
+                                          height: 120,
+                                          fit: BoxFit.cover,
                                         ),
                                       )
-                                    : null,
+                                    : user?.profileImageUrl != null && user!.profileImageUrl!.isNotEmpty
+                                        ? ClipOval(
+                                            child: Image.network(
+                                              user.profileImageUrl!,
+                                              width: 120,
+                                              height: 120,
+                                              fit: BoxFit.cover,
+                                              loadingBuilder: (context, child, loadingProgress) {
+                                                if (loadingProgress == null) return child;
+                                                return Center(
+                                                  child: CircularProgressIndicator(
+                                                    value: loadingProgress.expectedTotalBytes != null
+                                                        ? loadingProgress.cumulativeBytesLoaded /
+                                                            loadingProgress.expectedTotalBytes!
+                                                        : null,
+                                                  ),
+                                                );
+                                              },
+                                              errorBuilder: (context, error, stackTrace) {
+                                                debugPrint('❌ Error loading profile image: $error');
+                                                return _buildFallbackAvatar(user);
+                                              },
+                                            ),
+                                          )
+                                        : _buildFallbackAvatar(user),
                               ),
                               if (_isEditing)
                                 Positioned(
@@ -381,12 +409,19 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Obtém imagem de perfil (local ou URL)
   ImageProvider? _getProfileImage(user) {
+    debugPrint('🖼️ Getting profile image for user: ${user?.name}');
+    debugPrint('🖼️ Selected image: $_selectedImage');
+    debugPrint('🖼️ User profile URL: ${user?.profileImageUrl}');
+    
     if (_selectedImage != null) {
+      debugPrint('🖼️ Using selected image: ${_selectedImage!.path}');
       return FileImage(_selectedImage!);
     }
     if (user?.profileImageUrl != null) {
+      debugPrint('🖼️ Using network image: ${user!.profileImageUrl}');
       return NetworkImage(user!.profileImageUrl!);
     }
+    debugPrint('🖼️ No image available, showing fallback');
     return null;
   }
 
@@ -481,12 +516,23 @@ class _ProfilePageState extends State<ProfilePage> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
+      debugPrint('💾 Saving profile changes...');
+      debugPrint('💾 Name: ${_nameController.text.trim()}');
+      debugPrint('💾 Image path: ${_selectedImage?.path}');
+      
       await authController.updateProfile(
         name: _nameController.text.trim(),
         profileImagePath: _selectedImage?.path,
       );
 
       if (!mounted) return;
+      
+      debugPrint('💾 Profile updated successfully');
+      
+      // Força recarregamento dos dados do usuário
+      final updatedUser = authController.user;
+      debugPrint('💾 Updated user profile URL: ${updatedUser?.profileImageUrl}');
+      
       setState(() {
         _isEditing = false;
         _selectedImage = null;
@@ -498,7 +544,12 @@ class _ProfilePageState extends State<ProfilePage> {
           backgroundColor: Colors.green,
         ),
       );
+      
+      // Debug final
+      _debugUserInfo();
+      
     } catch (e) {
+      debugPrint('❌ Error saving profile: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao atualizar perfil: $e')),
@@ -794,5 +845,28 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
     );
+  }
+
+  // Constrói avatar de fallback
+  Widget _buildFallbackAvatar(user) {
+    return Text(
+      user?.name.substring(0, 1).toUpperCase() ?? 'U',
+      style: TextStyle(
+        fontSize: 48,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+
+  // Debug das informações do usuário
+  void _debugUserInfo() {
+    final user = context.read<AuthController>().user;
+    debugPrint('👤 Current user: ${user?.name}');
+    debugPrint('👤 User ID: ${user?.id}');
+    debugPrint('👤 User email: ${user?.email}');
+    debugPrint('👤 Profile image URL: ${user?.profileImageUrl}');
+    debugPrint('👤 Created at: ${user?.createdAt}');
+    debugPrint('👤 Updated at: ${user?.updatedAt}');
   }
 } 

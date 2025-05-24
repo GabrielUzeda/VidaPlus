@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 // Core
@@ -60,6 +61,14 @@ Future<void> _connectToFirebaseEmulator() async {
     
     // Conectar ao emulador do Firestore (porta 8080)
     FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
+    
+    // Conectar ao emulador do Storage (porta 9199)
+    await FirebaseStorage.instance.useStorageEmulator(host, 9199);
+    
+    debugPrint('✅ Conectado aos emuladores Firebase:');
+    debugPrint('   🔐 Auth: $host:9099');
+    debugPrint('   📄 Firestore: $host:8080');
+    debugPrint('   📦 Storage: $host:9199');
   } catch (e) {
     // Em produção, falha silenciosa - conectará ao Firebase real
     // Em desenvolvimento, pode indicar que emuladores não estão rodando

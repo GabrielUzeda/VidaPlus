@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Regras do Firebase Storage para desenvolvimento local
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Regra geral: permite leitura e escrita para usuários autenticados
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Regra específica para imagens de perfil
+    match /profile_images/{fileName} {
+      // Permite leitura para todos (para exibir as imagens)
+      allow read: if true;
+      
+      // Permite escrita apenas para usuários autenticados
+      allow write: if request.auth != null
+        && request.auth.uid != null
+        && fileName.matches('profile_.*');
+    }
+  }
+} 

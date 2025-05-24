@@ -3,6 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import '../models/user_model.dart';
+import 'package:flutter/foundation.dart';
 
 // Datasource para operações de autenticação com Firebase
 class FirebaseAuthDatasource {
@@ -172,15 +173,69 @@ class FirebaseAuthDatasource {
       throw Exception('Usuário não autenticado');
     }
 
-    final file = File(filePath);
-    final fileName = 'profile_${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    
-    final ref = _storage.ref().child('profile_images').child(fileName);
-    
-    final uploadTask = ref.putFile(file);
-    final snapshot = await uploadTask;
-    
-    return await snapshot.ref.getDownloadURL();
+    debugPrint('📤 Starting profile image upload...');
+    debugPrint('📤 User ID: ${user.uid}');
+    debugPrint('📤 File path: $filePath');
+    debugPrint('📤 Firebase Storage bucket: ${_storage.bucket}');
+    debugPrint('📤 Is using emulator: ${_storage.bucket?.contains('localhost') ?? false}');
+
+    try {
+      final file = File(filePath);
+      
+      // Verifica se o arquivo existe
+      if (!await file.exists()) {
+        throw Exception('Arquivo não encontrado: $filePath');
+      }
+      
+      // Verifica o tamanho do arquivo
+      final fileSize = await file.length();
+      debugPrint('📤 File size: ${fileSize} bytes');
+      
+      final fileName = 'profile_${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      debugPrint('📤 Generated filename: $fileName');
+      
+      final ref = _storage.ref().child('profile_images').child(fileName);
+      debugPrint('📤 Storage reference: ${ref.fullPath}');
+      
+      final uploadTask = ref.putFile(file);
+      final snapshot = await uploadTask;
+      
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      debugPrint('✅ Upload successful! URL: $downloadUrl');
+      
+      return downloadUrl;
+    } on FirebaseException catch (e) {
+      debugPrint('❌ Firebase Storage error: ${e.code} - ${e.message}');
+      debugPrint('❌ Firebase Storage plugin: ${e.plugin}');
+      debugPrint('❌ Firebase Storage stackTrace: ${e.stackTrace}');
+      switch (e.code) {
+        case 'storage/unauthorized':
+          throw Exception('Sem permissão para fazer upload. Verifique as regras do Firebase Storage.');
+        case 'storage/canceled':
+          throw Exception('Upload cancelado pelo usuário.');
+        case 'storage/unknown':
+          throw Exception('Erro desconhecido do Firebase Storage. Verifique sua conexão e configuração do emulador.');
+        case 'storage/object-not-found':
+          throw Exception('Arquivo não encontrado no Storage.');
+        case 'storage/bucket-not-found':
+          throw Exception('Bucket do Storage não encontrado. Verifique a configuração do Firebase.');
+        case 'storage/project-not-found':
+          throw Exception('Projeto Firebase não encontrado.');
+        case 'storage/quota-exceeded':
+          throw Exception('Cota de armazenamento excedida.');
+        case 'storage/unauthenticated':
+          throw Exception('Usuário não autenticado para fazer upload.');
+        case 'storage/retry-limit-exceeded':
+          throw Exception('Muitas tentativas. Tente novamente mais tarde.');
+        case 'storage/invalid-checksum':
+          throw Exception('Arquivo corrompido. Tente selecionar outra imagem.');
+        default:
+          throw Exception('Erro no Firebase Storage (${e.code}): ${e.message}');
+      }
+    } catch (e) {
+      debugPrint('❌ General upload error: $e');
+      throw Exception('Erro ao fazer upload da imagem: $e');
+    }
   }
 
   // Tratamento de erros de autenticação com mensagens amigáveis
