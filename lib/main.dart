@@ -29,6 +29,9 @@ import 'presentation/pages/home/home_page.dart';
 
 import 'firebase_options.dart';
 
+// GlobalKey para preservar o estado da HomePage
+final GlobalKey<State<HomePage>> _homePageKey = GlobalKey<State<HomePage>>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -242,7 +245,8 @@ class VidaPlusApp extends StatelessWidget {
     }
     
     if (authController.isAuthenticated) {
-      return const HomePage();
+      // Usa GlobalKey para preservar completamente o estado da HomePage
+      return HomePage(key: _homePageKey);
     }
     
     return const LoginPage();
