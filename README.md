@@ -12,7 +12,7 @@
 ### 2. Instalação
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/vidaplus.git
+git clone https://github.com/gabrieluzeda/vidaplus.git
 cd VidaPlus
 
 # Instale dependências
@@ -240,14 +240,24 @@ firebase deploy --only hosting
 4. Push: `git push origin feature/nova-funcionalidade`
 5. Abra um Pull Request
 
+## 👨‍💻 Desenvolvedor
+
+**Gabriel Uzeda**
+- 💼 Website: [uzeda.ddns.net](https://uzeda.ddns.net)
+- 📧 Email: uzeda.dev@gmail.com
+- 🎯 Especialista em Flutter & Clean Architecture
+
 ## 📄 Licença
 
 MIT License - veja [LICENSE](LICENSE) para detalhes.
 
 ## 📞 Suporte
 
-Para problemas ou dúvidas, abra uma [issue](https://github.com/seu-usuario/vidaplus/issues).
+Para problemas ou dúvidas:
+- 🐛 Abra uma [issue](https://github.com/gabrieluzeda/vidaplus/issues)
+- 📧 Entre em contato: uzeda.dev@gmail.com
+- 🌐 Visite: [uzeda.ddns.net](https://uzeda.ddns.net)
 
 ---
 
-**Desenvolvido com ❤️ usando Flutter + Firebase + Clean Architecture**
+**Desenvolvido com ❤️ por Gabriel Uzeda usando Flutter + Firebase + Clean Architecture**
