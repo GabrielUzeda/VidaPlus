@@ -177,7 +177,7 @@ class FirebaseAuthDatasource {
     debugPrint('📤 User ID: ${user.uid}');
     debugPrint('📤 File path: $filePath');
     debugPrint('📤 Firebase Storage bucket: ${_storage.bucket}');
-    debugPrint('📤 Is using emulator: ${_storage.bucket?.contains('localhost') ?? false}');
+    debugPrint('📤 Is using emulator: ${_storage.bucket.contains('localhost')}');
 
     try {
       final file = File(filePath);
@@ -189,7 +189,7 @@ class FirebaseAuthDatasource {
       
       // Verifica o tamanho do arquivo
       final fileSize = await file.length();
-      debugPrint('📤 File size: ${fileSize} bytes');
+      debugPrint('📤 File size: $fileSize bytes');
       
       final fileName = 'profile_${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       debugPrint('📤 Generated filename: $fileName');

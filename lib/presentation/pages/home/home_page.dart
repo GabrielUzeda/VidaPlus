@@ -66,10 +66,13 @@ class _HomePageState extends State<HomePage> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.notifications_off, color: Colors.orange),
             SizedBox(width: 8),
-            Text('Permissões Necessárias'),
+            Expanded(
+              child: Text('Permissões Necessárias'),
+            ),
           ],
         ),
         content: const Text(
@@ -101,10 +104,13 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.schedule, color: Colors.blue),
             SizedBox(width: 8),
-            Text('Alarmes Precisos'),
+            Expanded(
+              child: Text('Alarmes Precisos'),
+            ),
           ],
         ),
         content: const Text(

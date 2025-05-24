@@ -407,24 +407,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Obtém imagem de perfil (local ou URL)
-  ImageProvider? _getProfileImage(user) {
-    debugPrint('🖼️ Getting profile image for user: ${user?.name}');
-    debugPrint('🖼️ Selected image: $_selectedImage');
-    debugPrint('🖼️ User profile URL: ${user?.profileImageUrl}');
-    
-    if (_selectedImage != null) {
-      debugPrint('🖼️ Using selected image: ${_selectedImage!.path}');
-      return FileImage(_selectedImage!);
-    }
-    if (user?.profileImageUrl != null) {
-      debugPrint('🖼️ Using network image: ${user!.profileImageUrl}');
-      return NetworkImage(user!.profileImageUrl!);
-    }
-    debugPrint('🖼️ No image available, showing fallback');
-    return null;
-  }
-
   // Obtém ícone baseado no tema atual
   IconData _getThemeIcon(AppThemeMode themeMode) {
     switch (themeMode) {
@@ -567,10 +549,13 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: const Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.notifications),
               SizedBox(width: 8),
-              Text('Notificações'),
+              Expanded(
+                child: Text('Notificações'),
+              ),
             ],
           ),
           content: ConstrainedBox(
@@ -643,13 +628,18 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 16),
                   
                   // Botão para verificar permissões
-                  TextButton.icon(
-                    onPressed: () async {
-                      await habitsController.checkNotificationPermissions();
-                      setState(() {});
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Verificar Permissões'),
+                  Center(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: TextButton.icon(
+                        onPressed: () async {
+                          await habitsController.checkNotificationPermissions();
+                          setState(() {});
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Verificar Permissões'),
+                      ),
+                    ),
                   ),
                   
                   const SizedBox(height: 16),
@@ -789,10 +779,13 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.palette),
             SizedBox(width: 8),
-            Text('Escolher Cor'),
+            Expanded(
+              child: Text('Escolher Cor'),
+            ),
           ],
         ),
         content: SizedBox(
