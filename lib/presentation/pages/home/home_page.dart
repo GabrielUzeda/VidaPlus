@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/habits_controller.dart';
 import '../../../domain/entities/habit_entity.dart';
+import '../../../core/services/notification_service.dart';
 import 'widgets/habit_card.dart';
 import 'widgets/progress_summary.dart';
 import 'widgets/add_habit_dialog.dart';
@@ -25,8 +26,99 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestNotificationPermissions();
       _loadUserData();
     });
+  }
+
+  // Solicita permissões de notificação na inicialização
+  Future<void> _requestNotificationPermissions() async {
+    try {
+      final notificationService = context.read<NotificationService>();
+      
+      // Inicializa o serviço
+      await notificationService.initialize();
+      
+      // Solicita permissões
+      final hasPermission = await notificationService.requestPermission();
+      
+      if (!hasPermission) {
+        // Mostra diálogo explicativo se não tiver permissão
+        if (mounted) {
+          _showPermissionDialog();
+        }
+      } else {
+        // Verifica se pode agendar alarmes exatos
+        final canScheduleExact = await notificationService.canScheduleExactAlarms();
+        if (!canScheduleExact && mounted) {
+          _showExactAlarmDialog();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error requesting notification permissions: $e');
+    }
+  }
+
+  // Mostra diálogo sobre permissões de notificação
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.notifications_off, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Permissões Necessárias'),
+          ],
+        ),
+        content: const Text(
+          'Para funcionar corretamente, o Vida+ precisa enviar notificações para lembrar você dos seus hábitos.\n\n'
+          'Por favor, ative as notificações nas configurações do sistema.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Agora não'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Tenta solicitar permissão novamente
+              final notificationService = context.read<NotificationService>();
+              await notificationService.requestPermission();
+            },
+            child: const Text('Permitir'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Mostra diálogo sobre alarmes exatos
+  void _showExactAlarmDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.schedule, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('Alarmes Precisos'),
+          ],
+        ),
+        content: const Text(
+          'Para que as notificações sejam enviadas no horário exato, é recomendado ativar a permissão de "Alarmes e lembretes" nas configurações do sistema.\n\n'
+          'Sem essa permissão, as notificações podem ter alguns minutos de atraso.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Ok, entendi'),
+          ),
+        ],
+      ),
+    );
   }
 
   // Carrega dados do usuário

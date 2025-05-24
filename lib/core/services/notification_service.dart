@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import '../../domain/entities/habit_entity.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 // Serviço para gerenciar notificações locais
 class NotificationService {
@@ -81,18 +81,49 @@ class NotificationService {
 
     if (androidImplementation != null) {
       try {
-        // Solicita permissão para notificações
-        final bool? notificationGranted = await androidImplementation.requestNotificationsPermission();
+        // 1. Solicita permissão para notificações
+        bool? notificationGranted = await androidImplementation.requestNotificationsPermission();
+        debugPrint('🔔 Notification permission: $notificationGranted');
         
-        // Solicita permissão para alarmes exatos (Android 13+)
-        final bool? exactAlarmsGranted = await androidImplementation.requestExactAlarmsPermission();
+        // Se não conseguiu, tenta de novo de forma mais insistente
+        if (notificationGranted != true) {
+          debugPrint('⚠️ Trying notification permission again...');
+          await Future.delayed(const Duration(milliseconds: 500));
+          notificationGranted = await androidImplementation.requestNotificationsPermission();
+        }
         
-        debugPrint('Notification permission: $notificationGranted');
-        debugPrint('Exact alarms permission: $exactAlarmsGranted');
+        // 2. Solicita permissão para alarmes exatos (Android 13+)
+        bool? exactAlarmsGranted = await androidImplementation.requestExactAlarmsPermission();
+        debugPrint('⏰ Exact alarms permission: $exactAlarmsGranted');
         
-        return (notificationGranted ?? false) && (exactAlarmsGranted ?? false);
+        // Se não conseguiu, tenta de novo
+        if (exactAlarmsGranted != true) {
+          debugPrint('⚠️ Trying exact alarms permission again...');
+          await Future.delayed(const Duration(milliseconds: 500));
+          exactAlarmsGranted = await androidImplementation.requestExactAlarmsPermission();
+        }
+        
+        // 3. Verifica se pode criar canais de notificação
+        await androidImplementation.createNotificationChannel(
+          const AndroidNotificationChannel(
+            'habit_reminders',
+            'Lembretes de Hábitos',
+            description: 'Notificações para lembrar de realizar hábitos',
+            importance: Importance.high,
+            playSound: true,
+            enableVibration: true,
+            enableLights: true,
+            ledColor: Color.fromARGB(255, 255, 0, 0),
+          ),
+        );
+        
+        // 4. Verifica capacidades finais
+        final canScheduleExact = await canScheduleExactAlarms();
+        debugPrint('✅ Final status - Notifications: ${notificationGranted ?? false}, Exact alarms: $canScheduleExact');
+        
+        return (notificationGranted ?? false);
       } catch (e) {
-        debugPrint('Error requesting permissions: $e');
+        debugPrint('❌ Error requesting permissions: $e');
         return false;
       }
     }
@@ -125,21 +156,42 @@ class NotificationService {
     try {
       await _ensureInitialized();
       
+      debugPrint('🎯 Starting to schedule habit: ${habit.name}');
+      
       final isEnabled = await getNotificationsEnabled();
-      if (!isEnabled) return;
+      if (!isEnabled) {
+        debugPrint('❌ Notifications disabled in app settings');
+        return;
+      }
 
-      if (habit.recommendedTime == null) return;
+      if (habit.recommendedTime == null) {
+        debugPrint('❌ No recommended time for habit: ${habit.name}');
+        return;
+      }
 
-      // Verifica se já está agendado para evitar reagendamento desnecessário
-      if (_isHabitScheduled(habit.id)) return;
+      // Verifica permissões antes de agendar
+      final hasPermission = await requestPermission();
+      if (!hasPermission) {
+        debugPrint('❌ No notification permissions granted');
+        return;
+      }
+
+      // Cancela notificação anterior se existir para evitar duplicatas
+      await cancelHabitReminder(habit.id);
 
       // Parse do horário recomendado (formato: "08:00")
       final timeParts = habit.recommendedTime!.split(':');
-      if (timeParts.length != 2) return;
+      if (timeParts.length != 2) {
+        debugPrint('❌ Invalid time format: ${habit.recommendedTime}');
+        return;
+      }
 
       final hour = int.tryParse(timeParts[0]);
       final minute = int.tryParse(timeParts[1]);
-      if (hour == null || minute == null) return;
+      if (hour == null || minute == null) {
+        debugPrint('❌ Could not parse time: ${habit.recommendedTime}');
+        return;
+      }
 
       // Calcula o próximo horário da notificação
       final now = DateTime.now();
@@ -154,6 +206,9 @@ class NotificationService {
       // Se o horário já passou hoje, agenda para amanhã
       if (scheduledDate.isBefore(now)) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
+        debugPrint('📅 Time already passed today, scheduling for tomorrow: $scheduledDate');
+      } else {
+        debugPrint('📅 Scheduling for today: $scheduledDate');
       }
 
       // Converte para timezone
@@ -161,8 +216,10 @@ class NotificationService {
         scheduledDate,
         tz.local,
       );
+      
+      debugPrint('🕐 Scheduled timezone: $scheduledTZ');
 
-      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      final AndroidNotificationDetails androidPlatformChannelSpecifics =
           AndroidNotificationDetails(
         'habit_reminders',
         'Lembretes de Hábitos',
@@ -172,50 +229,96 @@ class NotificationService {
         icon: '@mipmap/ic_launcher',
         playSound: true,
         enableVibration: true,
+        // Configurações adicionais para melhor funcionamento
+        enableLights: true,
+        ledColor: const Color.fromARGB(255, 255, 0, 0),
+        ledOnMs: 1000,
+        ledOffMs: 500,
+        autoCancel: true,
+        ongoing: false,
+        showWhen: true,
+        when: scheduledTZ.millisecondsSinceEpoch,
+        usesChronometer: false,
+        chronometerCountDown: false,
+        channelShowBadge: true,
+        onlyAlertOnce: false,
+        visibility: NotificationVisibility.public,
+        // Configurações adicionais para garantir que apareça
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.alarm,
       );
 
-      const NotificationDetails platformChannelSpecifics =
-          NotificationDetails(android: androidPlatformChannelSpecifics);
+      const DarwinNotificationDetails iosPlatformChannelSpecifics =
+          DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        sound: 'default',
+        badgeNumber: 1,
+        interruptionLevel: InterruptionLevel.active,
+      );
+
+      final NotificationDetails platformChannelSpecifics =
+          NotificationDetails(
+            android: androidPlatformChannelSpecifics,
+            iOS: iosPlatformChannelSpecifics,
+          );
 
       // Verifica se pode usar alarmes exatos
       final canUseExactAlarms = await canScheduleExactAlarms();
+      debugPrint('🔒 Can schedule exact alarms: $canUseExactAlarms');
+      
+      final notificationId = habit.id.hashCode;
+      debugPrint('🆔 Notification ID: $notificationId');
       
       if (canUseExactAlarms) {
         // Agenda a notificação para o horário específico (exact alarm)
         await _flutterLocalNotificationsPlugin!.zonedSchedule(
-          habit.id.hashCode, // ID único para o hábito
+          notificationId, // ID único para o hábito
           'Hora do seu hábito! 🌟',
           'Não se esqueça de: ${habit.name}',
           scheduledTZ,
           platformChannelSpecifics,
           payload: habit.id,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
           matchDateTimeComponents: DateTimeComponents.time, // Repete diariamente no mesmo horário
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         );
-        debugPrint('Scheduled exact alarm for habit: ${habit.name} at ${habit.recommendedTime}');
+        debugPrint('✅ Scheduled EXACT alarm for habit: ${habit.name} at ${habit.recommendedTime} (next: $scheduledTZ)');
       } else {
-        // Usa agendamento inexato (pode ter alguns minutos de diferença)
+        // Solicita permissão para alarmes exatos
+        final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+            _flutterLocalNotificationsPlugin?.resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+
+        if (androidImplementation != null) {
+          await androidImplementation.requestExactAlarmsPermission();
+        }
+
+        // Usa agendamento inexato como fallback
         await _flutterLocalNotificationsPlugin!.zonedSchedule(
-          habit.id.hashCode, // ID único para o hábito
+          notificationId, // ID único para o hábito
           'Hora do seu hábito! 🌟',
           'Não se esqueça de: ${habit.name}',
           scheduledTZ,
           platformChannelSpecifics,
           payload: habit.id,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
           matchDateTimeComponents: DateTimeComponents.time,
-          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, // Força inexact
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
-        debugPrint('Scheduled inexact alarm for habit: ${habit.name} at ${habit.recommendedTime} (exact alarms not available)');
+        debugPrint('⚠️ Scheduled INEXACT alarm for habit: ${habit.name} at ${habit.recommendedTime} (exact alarms not available)');
       }
 
       // Marca como agendado
       await _markHabitAsScheduled(habit.id);
+      
+      // Verifica se foi realmente agendado
+      final pendingNotifications = await _flutterLocalNotificationsPlugin!.pendingNotificationRequests();
+      final isScheduled = pendingNotifications.any((n) => n.id == notificationId);
+      debugPrint('🔍 Verification - Notification scheduled: $isScheduled');
+      
     } catch (e) {
-      // Silently handle errors during notification scheduling
-      debugPrint('Error scheduling habit reminder: $e');
+      // Log detalhado do erro
+      debugPrint('❌ Error scheduling habit reminder for ${habit.name}: $e');
     }
   }
 
@@ -394,11 +497,6 @@ class NotificationService {
     }
   }
 
-  // Verifica se um hábito já está agendado
-  bool _isHabitScheduled(String habitId) {
-    return _scheduledHabits.contains(habitId);
-  }
-
   // Marca um hábito como agendado
   Future<void> _markHabitAsScheduled(String habitId) async {
     _scheduledHabits.add(habitId);
@@ -409,5 +507,46 @@ class NotificationService {
   Future<void> _removeHabitFromScheduled(String habitId) async {
     _scheduledHabits.remove(habitId);
     await _saveScheduledHabits();
+  }
+
+  // Métodos para depuração
+  Future<void> debugNotifications() async {
+    try {
+      await _ensureInitialized();
+      
+      // Lista notificações pendentes
+      final pendingNotifications = await _flutterLocalNotificationsPlugin!.pendingNotificationRequests();
+      debugPrint('📋 Pending notifications: ${pendingNotifications.length}');
+      
+      for (final notification in pendingNotifications) {
+        debugPrint('  - ID: ${notification.id}, Title: ${notification.title}, Body: ${notification.body}');
+      }
+      
+      // Verifica permissões
+      final canSchedule = await canScheduleExactAlarms();
+      debugPrint('🔔 Can schedule exact alarms: $canSchedule');
+      
+      // Lista hábitos agendados
+      debugPrint('📅 Scheduled habits: ${_scheduledHabits.length}');
+      for (final habitId in _scheduledHabits) {
+        debugPrint('  - Habit ID: $habitId');
+      }
+      
+    } catch (e) {
+      debugPrint('❌ Error debugging notifications: $e');
+    }
+  }
+
+  // Limpa todas as notificações e redefine estado
+  Future<void> resetNotifications() async {
+    try {
+      await _ensureInitialized();
+      await cancelAllNotifications();
+      _scheduledHabits.clear();
+      await _saveScheduledHabits();
+      debugPrint('🔄 Notifications reset completed');
+    } catch (e) {
+      debugPrint('❌ Error resetting notifications: $e');
+    }
   }
 } 

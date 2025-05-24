@@ -136,6 +136,12 @@ class FakeNotificationService implements NotificationService {
     required String body,
     String? payload,
   }) async {}
+
+  @override
+  Future<void> debugNotifications() async {}
+
+  @override
+  Future<void> resetNotifications() async {}
 }
 
 void main() {

@@ -6,6 +6,7 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/habits_controller.dart';
 import '../../controllers/theme_controller.dart';
 import '../../../core/services/notification_service.dart';
+import 'package:flutter/foundation.dart';
 
 // Página de perfil do usuário
 class ProfilePage extends StatefulWidget {
@@ -606,6 +607,65 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: Theme.of(context).textTheme.bodySmall,
                     textAlign: TextAlign.center,
                   ),
+                  
+                  // Seção de depuração (só aparece em modo debug)
+                  if (kDebugMode) ...[
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Ferramentas de Depuração',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final messenger = ScaffoldMessenger.of(context);
+                              await notificationService.debugNotifications();
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Debug info no console'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.bug_report, size: 16),
+                            label: const Text('Debug'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final messenger = ScaffoldMessenger.of(context);
+                              await notificationService.resetNotifications();
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Notificações resetadas'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                              if (mounted) setState(() {});
+                            },
+                            icon: const Icon(Icons.refresh, size: 16),
+                            label: const Text('Reset'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
