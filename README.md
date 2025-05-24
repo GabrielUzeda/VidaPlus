@@ -12,7 +12,7 @@
 ### 2. Instalação
 ```bash
 # Clone o repositório
-git clone https://github.com/gabrieluzeda/vidaplus.git
+git clone https://github.com/GabrielUzeda/VidaPlus.git
 cd VidaPlus
 
 # Instale dependências
@@ -254,7 +254,7 @@ MIT License - veja [LICENSE](LICENSE) para detalhes.
 ## 📞 Suporte
 
 Para problemas ou dúvidas:
-- 🐛 Abra uma [issue](https://github.com/gabrieluzeda/vidaplus/issues)
+- 🐛 Abra uma [issue](https://github.com/GabrielUzeda/VidaPlus/issues)
 - 📧 Entre em contato: uzeda.dev@gmail.com
 - 🌐 Visite: [uzeda.ddns.net](https://uzeda.ddns.net)
 
