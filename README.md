@@ -224,14 +224,6 @@ firebase deploy --only hosting
 
 **Nota**: Para produção, configure um projeto Firebase real com `flutterfire configure`
 
-## 🎯 Próximas Funcionalidades
-
-- [ ] Sincronização offline
-- [ ] Gamificação (pontos, conquistas)
-- [ ] Integração com HealthKit/Google Fit
-- [ ] Lembretes personalizáveis
-- [ ] Compartilhamento social
-
 ## 🤝 Contribuindo
 
 1. Fork o projeto
@@ -245,7 +237,6 @@ firebase deploy --only hosting
 **Gabriel Uzeda**
 - 💼 Website: [uzeda.ddns.net](https://uzeda.ddns.net)
 - 📧 Email: uzeda.dev@gmail.com
-- 🎯 Especialista em Flutter & Clean Architecture
 
 ## 📄 Licença
 
@@ -259,5 +250,3 @@ Para problemas ou dúvidas:
 - 🌐 Visite: [uzeda.ddns.net](https://uzeda.ddns.net)
 
 ---
-
-**Desenvolvido com ❤️ por Gabriel Uzeda usando Flutter + Firebase + Clean Architecture**
