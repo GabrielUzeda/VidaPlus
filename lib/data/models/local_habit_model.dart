@@ -1,27 +1,52 @@
+import 'package:hive/hive.dart';
 import '../../domain/entities/habit_entity.dart';
 
-// Model para conversão de dados do hábito entre Firebase e entidade do domínio
-class HabitModel extends HabitEntity {
-  const HabitModel({
-    required super.id,
-    required super.userId,
-    required super.name,
-    required super.frequency,
-    super.recommendedTime,
-    required super.createdAt,
-    super.updatedAt,
-    super.isActive = true,
+part 'local_habit_model.g.dart';
+
+@HiveType(typeId: 1)
+class LocalHabitModel extends HiveObject {
+  @HiveField(0)
+  late String id;
+
+  @HiveField(1)
+  late String userId;
+
+  @HiveField(2)
+  late String name;
+
+  @HiveField(3)
+  late String frequency; // 'daily' or 'weekly'
+
+  @HiveField(4)
+  String? recommendedTime;
+
+  @HiveField(5)
+  late DateTime createdAt;
+
+  @HiveField(6)
+  DateTime? updatedAt;
+
+  @HiveField(7)
+  bool isActive;
+
+  LocalHabitModel({
+    required this.id,
+    required this.userId,
+    required this.name,
+    required this.frequency,
+    this.recommendedTime,
+    required this.createdAt,
+    this.updatedAt,
+    this.isActive = true,
   });
 
-  // Cria um HabitModel a partir de um Map (Firestore)
-  factory HabitModel.fromMap(Map<String, dynamic> map, String id) {
-    return HabitModel(
+  // Cria um LocalHabitModel a partir de um Map
+  factory LocalHabitModel.fromMap(Map<String, dynamic> map, String id) {
+    return LocalHabitModel(
       id: id,
       userId: map['userId'] as String,
       name: map['name'] as String,
-      frequency: HabitFrequency.values.firstWhere(
-        (e) => e.name == map['frequency'],
-      ),
+      frequency: map['frequency'] as String,
       recommendedTime: map['recommendedTime'] as String?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] as int),
       updatedAt: map['updatedAt'] != null 
@@ -31,12 +56,13 @@ class HabitModel extends HabitEntity {
     );
   }
 
-  // Converte HabitModel para Map (Firestore)
+  // Converte LocalHabitModel para Map
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'userId': userId,
       'name': name,
-      'frequency': frequency.name,
+      'frequency': frequency,
       'recommendedTime': recommendedTime,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt?.millisecondsSinceEpoch,
@@ -44,13 +70,13 @@ class HabitModel extends HabitEntity {
     };
   }
 
-  // Cria um HabitModel a partir de uma HabitEntity
-  factory HabitModel.fromEntity(HabitEntity entity) {
-    return HabitModel(
+  // Cria um LocalHabitModel a partir de uma HabitEntity
+  factory LocalHabitModel.fromEntity(HabitEntity entity) {
+    return LocalHabitModel(
       id: entity.id,
       userId: entity.userId,
       name: entity.name,
-      frequency: entity.frequency,
+      frequency: entity.frequency.name,
       recommendedTime: entity.recommendedTime,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
@@ -58,13 +84,15 @@ class HabitModel extends HabitEntity {
     );
   }
 
-  // Converte HabitModel para HabitEntity
+  // Converte LocalHabitModel para HabitEntity
   HabitEntity toEntity() {
     return HabitEntity(
       id: id,
       userId: userId,
       name: name,
-      frequency: frequency,
+      frequency: HabitFrequency.values.firstWhere(
+        (e) => e.name == frequency,
+      ),
       recommendedTime: recommendedTime,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -73,18 +101,17 @@ class HabitModel extends HabitEntity {
   }
 
   // Cria uma cópia do model com campos atualizados
-  @override
-  HabitModel copyWith({
+  LocalHabitModel copyWith({
     String? id,
     String? userId,
     String? name,
-    HabitFrequency? frequency,
+    String? frequency,
     String? recommendedTime,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isActive,
   }) {
-    return HabitModel(
+    return LocalHabitModel(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       name: name ?? this.name,
@@ -94,5 +121,10 @@ class HabitModel extends HabitEntity {
       updatedAt: updatedAt ?? this.updatedAt,
       isActive: isActive ?? this.isActive,
     );
+  }
+
+  @override
+  String toString() {
+    return 'LocalHabitModel(id: $id, name: $name, frequency: $frequency, isActive: $isActive)';
   }
 } 

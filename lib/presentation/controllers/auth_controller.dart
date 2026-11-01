@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/usecases.dart';
 import '../../core/services/notification_service.dart';
+import '../../data/repositories_impl/local_auth_repository_impl.dart';
 
-// Controlador de estado para autenticação usando Use Cases (Clean Architecture)
 class AuthController extends ChangeNotifier {
   // Use Cases de autenticação
   final SignInUseCase _signInUseCase;
@@ -14,6 +14,7 @@ class AuthController extends ChangeNotifier {
   final UpdateProfileUseCase _updateProfileUseCase;
   
   final NotificationService _notificationService;
+  final LocalAuthRepositoryImpl? _localAuthRepository;
 
   AuthController({
     required SignInUseCase signInUseCase,
@@ -23,13 +24,15 @@ class AuthController extends ChangeNotifier {
     required GetAuthStateUseCase getAuthStateUseCase,
     required UpdateProfileUseCase updateProfileUseCase,
     required NotificationService notificationService,
+    LocalAuthRepositoryImpl? localAuthRepository,
   })  : _signInUseCase = signInUseCase,
         _signUpUseCase = signUpUseCase,
         _signOutUseCase = signOutUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
         _getAuthStateUseCase = getAuthStateUseCase,
         _updateProfileUseCase = updateProfileUseCase,
-        _notificationService = notificationService {
+        _notificationService = notificationService,
+        _localAuthRepository = localAuthRepository {
     _init();
   }
 
@@ -117,6 +120,48 @@ class AuthController extends ChangeNotifier {
       final user = await _signUpUseCase.call(params);
       _user = user;
       notifyListeners();
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Realiza login como convidado (para versão offline)
+  Future<void> signInAsGuest() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      // Usa o repositório local para login de convidado
+      if (_localAuthRepository != null) {
+        final user = await _localAuthRepository.signInAsGuest();
+        _user = user;
+        notifyListeners();
+      } else {
+        throw Exception('Login de convidado disponível apenas na versão offline');
+      }
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Realiza login com Google
+  Future<void> signInWithGoogle() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      // Usa o repositório local para login com Google
+      if (_localAuthRepository != null) {
+        final user = await _localAuthRepository.signInWithGoogle();
+        _user = user;
+        notifyListeners();
+      } else {
+        throw Exception('Login com Google disponível apenas na versão offline');
+      }
     } catch (e) {
       _setError(e.toString());
     } finally {

@@ -1,19 +1,40 @@
+import 'package:hive/hive.dart';
 import '../../domain/entities/checkin_entity.dart';
 
-// Model para conversão de dados do check-in entre Firebase e entidade do domínio
-class CheckInModel extends CheckInEntity {
-  const CheckInModel({
-    required super.id,
-    required super.habitId,
-    required super.userId,
-    required super.completedAt,
-    required super.date,
-    super.notes,
+part 'local_checkin_model.g.dart';
+
+@HiveType(typeId: 2)
+class LocalCheckInModel extends HiveObject {
+  @HiveField(0)
+  late String id;
+
+  @HiveField(1)
+  late String habitId;
+
+  @HiveField(2)
+  late String userId;
+
+  @HiveField(3)
+  late DateTime completedAt;
+
+  @HiveField(4)
+  late DateTime date;
+
+  @HiveField(5)
+  String? notes;
+
+  LocalCheckInModel({
+    required this.id,
+    required this.habitId,
+    required this.userId,
+    required this.completedAt,
+    required this.date,
+    this.notes,
   });
 
-  // Cria um CheckInModel a partir de um Map (Firestore)
-  factory CheckInModel.fromMap(Map<String, dynamic> map, String id) {
-    return CheckInModel(
+  // Cria um LocalCheckInModel a partir de um Map
+  factory LocalCheckInModel.fromMap(Map<String, dynamic> map, String id) {
+    return LocalCheckInModel(
       id: id,
       habitId: map['habitId'] as String,
       userId: map['userId'] as String,
@@ -23,9 +44,10 @@ class CheckInModel extends CheckInEntity {
     );
   }
 
-  // Converte CheckInModel para Map (Firestore)
+  // Converte LocalCheckInModel para Map
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'habitId': habitId,
       'userId': userId,
       'completedAt': completedAt.millisecondsSinceEpoch,
@@ -34,9 +56,9 @@ class CheckInModel extends CheckInEntity {
     };
   }
 
-  // Cria um CheckInModel a partir de uma CheckInEntity
-  factory CheckInModel.fromEntity(CheckInEntity entity) {
-    return CheckInModel(
+  // Cria um LocalCheckInModel a partir de uma CheckInEntity
+  factory LocalCheckInModel.fromEntity(CheckInEntity entity) {
+    return LocalCheckInModel(
       id: entity.id,
       habitId: entity.habitId,
       userId: entity.userId,
@@ -46,7 +68,7 @@ class CheckInModel extends CheckInEntity {
     );
   }
 
-  // Converte CheckInModel para CheckInEntity
+  // Converte LocalCheckInModel para CheckInEntity
   CheckInEntity toEntity() {
     return CheckInEntity(
       id: id,
@@ -59,8 +81,7 @@ class CheckInModel extends CheckInEntity {
   }
 
   // Cria uma cópia do model com campos atualizados
-  @override
-  CheckInModel copyWith({
+  LocalCheckInModel copyWith({
     String? id,
     String? habitId,
     String? userId,
@@ -68,7 +89,7 @@ class CheckInModel extends CheckInEntity {
     DateTime? date,
     String? notes,
   }) {
-    return CheckInModel(
+    return LocalCheckInModel(
       id: id ?? this.id,
       habitId: habitId ?? this.habitId,
       userId: userId ?? this.userId,
@@ -76,5 +97,10 @@ class CheckInModel extends CheckInEntity {
       date: date ?? this.date,
       notes: notes ?? this.notes,
     );
+  }
+
+  @override
+  String toString() {
+    return 'LocalCheckInModel(id: $id, habitId: $habitId, date: $date)';
   }
 } 

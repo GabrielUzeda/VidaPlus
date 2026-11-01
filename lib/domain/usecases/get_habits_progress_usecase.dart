@@ -2,7 +2,6 @@ import '../entities/checkin_entity.dart';
 import '../repositories/habits_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para obter progresso dos hábitos
 class GetHabitsProgressUseCase implements UseCase<Map<String, dynamic>, GetProgressParams> {
   final HabitsRepository _habitsRepository;
 
@@ -22,7 +21,6 @@ class GetHabitsProgressUseCase implements UseCase<Map<String, dynamic>, GetProgr
   }
 }
 
-// Caso de uso para obter check-ins de hoje
 class GetTodayCheckInsUseCase implements UseCase<List<CheckInEntity>, String> {
   final HabitsRepository _habitsRepository;
 
@@ -42,7 +40,6 @@ class GetTodayCheckInsUseCase implements UseCase<List<CheckInEntity>, String> {
   }
 }
 
-// Caso de uso para obter histórico de check-ins de um hábito
 class GetHabitHistoryUseCase implements UseCase<List<CheckInEntity>, GetHabitHistoryParams> {
   final HabitsRepository _habitsRepository;
 

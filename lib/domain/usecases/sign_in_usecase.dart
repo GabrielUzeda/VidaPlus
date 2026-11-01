@@ -2,7 +2,6 @@ import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para login do usuário
 class SignInUseCase implements UseCase<UserEntity, SignInParams> {
   final AuthRepository _authRepository;
 

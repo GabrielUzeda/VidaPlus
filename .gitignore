@@ -182,3 +182,5 @@ fastlane/README.md
 *.pyc
 migrate_working_dir/
 .swiftpm/
+*.g.dart
+*.mocks.dart

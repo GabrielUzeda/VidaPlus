@@ -1,16 +1,16 @@
 import '../../domain/entities/habit_entity.dart';
 import '../../domain/entities/checkin_entity.dart';
 import '../../domain/repositories/habits_repository.dart';
-import '../datasources/firestore_habits_datasource.dart';
-import '../models/habit_model.dart';
-import '../models/checkin_model.dart';
+import '../datasources/local_habits_datasource.dart';
+import '../models/local_habit_model.dart';
+import '../models/local_checkin_model.dart';
 
-// Implementação do repositório de hábitos (SOLID - Dependency Inversion)
-class HabitsRepositoryImpl implements HabitsRepository {
-  final FirestoreHabitsDatasource _datasource;
+// Implementação do repositório de hábitos local (SOLID - Dependency Inversion)
+class LocalHabitsRepositoryImpl implements HabitsRepository {
+  final LocalHabitsDatasource _datasource;
 
-  HabitsRepositoryImpl({
-    required FirestoreHabitsDatasource datasource,
+  LocalHabitsRepositoryImpl({
+    required LocalHabitsDatasource datasource,
   }) : _datasource = datasource;
 
   @override
@@ -28,14 +28,14 @@ class HabitsRepositoryImpl implements HabitsRepository {
 
   @override
   Future<HabitEntity> createHabit(HabitEntity habit) async {
-    final habitModel = HabitModel.fromEntity(habit);
+    final habitModel = LocalHabitModel.fromEntity(habit);
     final createdModel = await _datasource.createHabit(habitModel);
     return createdModel.toEntity();
   }
 
   @override
   Future<HabitEntity> updateHabit(HabitEntity habit) async {
-    final habitModel = HabitModel.fromEntity(habit);
+    final habitModel = LocalHabitModel.fromEntity(habit);
     final updatedModel = await _datasource.updateHabit(habitModel);
     return updatedModel.toEntity();
   }
@@ -53,7 +53,7 @@ class HabitsRepositoryImpl implements HabitsRepository {
 
   @override
   Future<CheckInEntity> createCheckIn(CheckInEntity checkIn) async {
-    final checkInModel = CheckInModel.fromEntity(checkIn);
+    final checkInModel = LocalCheckInModel.fromEntity(checkIn);
     final createdModel = await _datasource.createCheckIn(checkInModel);
     return createdModel.toEntity();
   }
@@ -107,5 +107,10 @@ class HabitsRepositoryImpl implements HabitsRepository {
       startDate: startDate,
       endDate: endDate,
     );
+  }
+
+  // Método adicional para limpar dados (para testes)
+  Future<void> clearAllData() async {
+    await _datasource.clearAllData();
   }
 } 

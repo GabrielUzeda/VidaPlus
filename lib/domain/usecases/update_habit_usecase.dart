@@ -2,7 +2,6 @@ import '../entities/habit_entity.dart';
 import '../repositories/habits_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para atualizar um hábito existente
 class UpdateHabitUseCase implements UseCase<HabitEntity, HabitEntity> {
   final HabitsRepository _habitsRepository;
 

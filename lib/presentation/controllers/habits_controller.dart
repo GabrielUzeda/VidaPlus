@@ -4,7 +4,6 @@ import '../../domain/entities/checkin_entity.dart';
 import '../../domain/usecases/usecases.dart';
 import '../../core/services/notification_service.dart';
 
-// Controlador de estado para hábitos usando Use Cases (Clean Architecture)
 class HabitsController extends ChangeNotifier {
   // Use Cases de hábitos
   final CreateHabitUseCase _createHabitUseCase;

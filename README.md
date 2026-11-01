@@ -1,252 +1,193 @@
-# 🌟 VidaPlus - Aplicativo de Hábitos Saudáveis
+# 🎯 VidaPlus - Habit Tracker Offline
 
-**VidaPlus** é um aplicativo Flutter para acompanhamento de hábitos saudáveis com foco na qualidade de vida. Desenvolvido seguindo **Clean Architecture** e princípios **SOLID**.
+Um aplicativo moderno de rastreamento de hábitos completamente offline, construído com Flutter e Clean Architecture.
 
-## 🚀 Como Executar (Início Rápido)
+## ✨ **Características Principais**
 
-### 1. Pré-requisitos
-- Flutter SDK (≥ 3.0.0)
-- Node.js para Firebase CLI
-- Git
+### 🔒 **100% Offline**
+- ✅ Todos os dados armazenados localmente com Hive
+- ✅ Funciona sem internet
+- ✅ Privacidade total dos seus dados
+- ✅ Login como convidado ou com Google
 
-### 2. Instalação
+### 🎨 **Interface Moderna**
+- ✅ Design Material 3 com glassmorphism
+- ✅ Animações 3D impressionantes
+- ✅ Tema claro/escuro automático
+- ✅ Gradientes e micro-interações
+
+### 📱 **Funcionalidades Completas**
+- ✅ Criação e gestão de hábitos
+- ✅ Check-ins diários com animações
+- ✅ Progresso visual com gráficos
+- ✅ Notificações personalizadas
+- ✅ Histórico detalhado
+- ✅ Perfil com foto personalizada
+
+## 🏗️ **Arquitetura**
+
+O projeto segue rigorosamente **Clean Architecture**:
+
+```
+lib/
+├── domain/           # 🎯 Regras de negócio
+│   ├── entities/     # Entidades puras
+│   ├── repositories/ # Contratos
+│   └── usecases/     # Casos de uso
+├── data/             # 💾 Camada de dados
+│   ├── datasources/  # Fontes locais (Hive)
+│   ├── models/       # Modelos com adapters
+│   └── repositories_impl/ # Implementações
+└── presentation/     # 🎨 Interface
+    ├── controllers/  # Estado (Provider)
+    └── pages/        # Telas e widgets
+```
+
+## 🚀 **Como Executar**
+
+### **Pré-requisitos**
+- Flutter 3.8.0+
+- Dart 3.0+
+
+### **Instalação**
 ```bash
 # Clone o repositório
-git clone https://github.com/GabrielUzeda/VidaPlus.git
-cd VidaPlus
+git clone https://github.com/seu-usuario/vidaplus.git
+cd vidaplus
 
-# Instale dependências
+# Instale as dependências
 flutter pub get
 
-# Instale Firebase CLI (se não tiver)
-npm install -g firebase-tools
+# Gere os adapters do Hive
+dart run build_runner build
+
+# Execute o app
+flutter run
 ```
 
-### 3. Executar o App (Desenvolvimento Local)
+### **Para Web**
 ```bash
-# Inicie os emuladores Firebase
-./start_emulators.sh
-
-# Em outro terminal, execute o app
-flutter run -d chrome --web-renderer html
+flutter run -d chrome
 ```
 
-**Pronto!** O app estará rodando em http://localhost:***XX** (a porta será exibida no terminal)
+## 🛠️ **Tecnologias**
 
-### 4. Parar os Emuladores
-```bash
-# Para parar os emuladores quando terminar
-pkill -f firebase
-```
+### **Core**
+- **Flutter** - Framework multiplataforma
+- **Dart** - Linguagem de programação
+- **Provider** - Gerenciamento de estado
 
-## 📱 Como Usar o App
+### **Armazenamento Local**
+- **Hive** - Banco de dados NoSQL local
+- **SharedPreferences** - Configurações simples
+- **Path Provider** - Caminhos do sistema
 
-### Primeiro Acesso
-1. **Registrar conta**: Clique em "Criar conta" na tela inicial
-2. **Fazer login**: Use email e senha cadastrados
-3. **Permitir notificações**: Aceite as permissões quando solicitado
+### **Autenticação**
+- **Google Sign In** - Login social
+- **Sistema próprio** - Login como convidado
 
-### Gerenciar Hábitos
-1. **Criar hábito**: Clique no botão "+" no dashboard
-2. **Configurar**:
-   - Nome do hábito (ex: "Beber água")
-   - Descrição opcional
-   - Frequência: Diária ou Semanal
-   - Horários recomendados (opcional)
-3. **Check-in diário**: Toque no card do hábito para marcar como concluído
-4. **Ver progresso**: Vá para a aba "Progresso" para ver gráficos
+### **Notificações**
+- **Flutter Local Notifications** - Lembretes
+- **Timezone** - Agendamento por fuso
 
-### Configurar Perfil
-1. **Editar perfil**: Vá para aba "Perfil" → botão "Editar"
-2. **Foto de perfil**: Toque na foto para escolher da galeria ou câmera
-3. **Configurações**: Ajuste tema, cor do app e notificações
+### **UI/UX**
+- **Material 3** - Design system moderno
+- **FL Chart** - Gráficos interativos
+- **Animações customizadas** - Micro-interações
 
-## 📊 Funcionalidades
+## 📋 **Funcionalidades**
 
-- ✅ **Autenticação**: Login/registro seguro
-- ✅ **Hábitos**: Criar, editar, excluir e fazer check-ins
-- ✅ **Progresso**: Gráficos de linha e barras
-- ✅ **Perfil**: Foto, dados pessoais, configurações
-- ✅ **Notificações**: Lembretes personalizados
-- ✅ **Temas**: Modo claro/escuro, cores customizáveis
+### **🔐 Autenticação**
+- Login com Google (baixa foto automaticamente)
+- Login como convidado (avatar padrão)
+- Logout seguro com limpeza de dados
 
-## 🔧 Solução de Problemas Comuns
+### **🎯 Hábitos**
+- Criação com nome, frequência e horário
+- Edição completa de propriedades
+- Exclusão com confirmação
+- Check-in com animação 3D
+- Histórico detalhado
 
-### ❌ Erro "Port already in use"
-```bash
-# Pare todos os processos Firebase
-pkill -f firebase
+### **📊 Progresso**
+- Gráficos de linha (semanal)
+- Gráficos de barra (mensal)
+- Estatísticas detalhadas
+- Taxa de conclusão
 
-# Ou mate processos específicos das portas
-sudo kill $(sudo lsof -t -i:9099)  # Auth
-sudo kill $(sudo lsof -t -i:8080)  # Firestore
-```
+### **👤 Perfil**
+- Foto personalizada (galeria/câmera)
+- Dados pessoais editáveis
+- Configurações de tema
+- Configurações de notificação
 
-### ❌ Erro "Firebase CLI not found"
-```bash
-# Instale o Firebase CLI
-npm install -g firebase-tools
+### **🔔 Notificações**
+- Lembretes personalizados por hábito
+- Lembrete diário geral
+- Controle total pelo usuário
+- Agenda inteligente (pula horários passados)
 
-# Verifique a instalação
-firebase --version
-```
+## 🎨 **Design Moderno**
 
-### ❌ App não conecta aos emuladores
-```bash
-# Teste se os emuladores estão funcionando
-curl http://localhost:9099  # Auth
-curl http://localhost:8080  # Firestore
+### **Glassmorphism**
+- Efeitos de blur e transparência
+- Gradientes dinâmicos
+- Bordas sutis com opacidade
 
-# Se não funcionarem, reinicie:
-./start_emulators.sh
-```
+### **Animações 3D**
+- Check-in com rotação e particles
+- Logo pulsante na tela de login
+- Transições suaves entre estados
+- Micro-interações responsivas
 
-### ❌ Problemas de CORS no navegador
-```bash
-# Use o renderer HTML específico
-flutter run -d chrome --web-renderer html
-```
+### **Material 3**
+- Cores dinâmicas do sistema
+- Typography moderna (Inter)
+- Components atualizados
+- Dark mode automático
 
-## 🧪 Testes
+## 🧪 **Testes**
 
 ```bash
 # Executar todos os testes
 flutter test
 
-# Testes com cobertura
-flutter test --coverage
+# Testes específicos
+flutter test test/auth_controller_test.dart
+flutter test test/widget_test.dart
 ```
 
-## 🏗️ Arquitetura Técnica
+## 📱 **Plataformas Suportadas**
 
-### Clean Architecture
-O projeto segue rigorosamente a **Clean Architecture** com separação em camadas:
+- ✅ **Android** (API 21+)
+- ✅ **iOS** (iOS 12+)
+- ✅ **Web** (Chrome, Firefox, Safari)
+- ✅ **Windows** (Windows 10+)
+- ✅ **macOS** (macOS 10.14+)
+- ✅ **Linux** (Ubuntu 18.04+)
 
-```
-lib/
-├── domain/           # 🎯 Regras de negócio
-│   ├── entities/     # Entidades do domínio
-│   ├── repositories/ # Contratos dos repositórios
-│   └── usecases/     # Casos de uso da aplicação
-├── data/             # 💾 Camada de dados
-│   ├── datasources/  # Fontes de dados (Firebase)
-│   ├── models/       # Modelos de dados
-│   └── repositories_impl/ # Implementações dos repositórios
-└── presentation/     # 🎨 Camada de apresentação
-    ├── controllers/  # Controllers (Provider)
-    └── pages/        # Telas e widgets
-```
+## 🤝 **Contribuindo**
 
-### Princípios SOLID Aplicados
-
-1. **Single Responsibility**: Cada classe tem uma única responsabilidade
-2. **Open/Closed**: Aberto para extensão, fechado para modificação
-3. **Liskov Substitution**: Subtipos substituíveis
-4. **Interface Segregation**: Interfaces específicas
-5. **Dependency Inversion**: Dependa de abstrações
-
-## 🔥 Firebase Emuladores (Desenvolvimento)
-
-### Por que usar emuladores?
-- **Desenvolvimento offline**: Não precisa de conexão com internet
-- **Dados locais**: Não interfere com dados de produção
-- **Rápido**: Sem latência de rede
-- **Grátis**: Sem custos de Firebase
-
-### Configuração dos Emuladores
-O projeto está configurado para usar emuladores locais:
-- **Auth**: http://localhost:9099
-- **Firestore**: http://localhost:8080
-- **Interface**: http://localhost:4000
-
-### Script de Inicialização
-O arquivo `start_emulators.sh` automatiza toda a configuração:
-```bash
-#!/bin/bash
-export FIREBASE_CONFIG='{"projectId":"demo-vidaplus","storageBucket":"demo-vidaplus.appspot.com"}'
-firebase emulators:start --only auth,firestore --project=demo-vidaplus
-```
-
-## 📁 Estrutura de Dados (Firestore)
-
-```
-users/
-  {userId}/
-    - id: string
-    - email: string
-    - name: string
-    - profileImageUrl?: string
-    - createdAt: timestamp
-
-habits/
-  {habitId}/
-    - id: string
-    - userId: string
-    - name: string
-    - frequency: 'daily' | 'weekly'
-    - recommendedTimes: string[]
-    - isActive: boolean
-
-checkins/
-  {checkinId}/
-    - id: string
-    - habitId: string
-    - userId: string
-    - date: string (YYYY-MM-DD)
-    - timestamp: timestamp
-```
-
-## 📦 Principais Dependências
-
-```yaml
-dependencies:
-  flutter: ^3.0.0
-  firebase_auth: ^4.15.3
-  cloud_firestore: ^4.13.6
-  firebase_storage: ^11.5.6
-  provider: ^6.1.1
-  fl_chart: ^0.65.0
-  image_picker: ^1.0.4
-  flutter_local_notifications: ^16.1.0
-```
-
-## 🌐 Deploy para Produção
-
-Para deployment em produção:
-
-```bash
-# Build para web
-flutter build web --release
-
-# Deploy no Firebase Hosting
-firebase deploy --only hosting
-```
-
-**Nota**: Para produção, configure um projeto Firebase real com `flutterfire configure`
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
-3. Commit: `git commit -am 'Adiciona nova funcionalidade'`
-4. Push: `git push origin feature/nova-funcionalidade`
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## 👨‍💻 Desenvolvedor
+## 📄 **Licença**
 
-**Gabriel Uzeda**
-- 💼 Website: [uzeda.ddns.net](https://uzeda.ddns.net)
-- 📧 Email: uzeda.dev@gmail.com
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 📄 Licença
+## 🎯 **Roadmap**
 
-MIT License - veja [LICENSE](LICENSE) para detalhes.
-
-## 📞 Suporte
-
-Para problemas ou dúvidas:
-- 🐛 Abra uma [issue](https://github.com/GabrielUzeda/VidaPlus/issues)
-- 📧 Entre em contato: uzeda.dev@gmail.com
-- 🌐 Visite: [uzeda.ddns.net](https://uzeda.ddns.net)
+- [ ] Backup/restore de dados
+- [ ] Sincronização entre dispositivos
+- [ ] Widgets para tela inicial
+- [ ] Integração com Apple Health/Google Fit
+- [ ] Gamificação com conquistas
+- [ ] Relatórios avançados
+- [ ] Modo família/compartilhado
 
 ---
+
+**Desenvolvido com ❤️ usando Flutter e Clean Architecture** 

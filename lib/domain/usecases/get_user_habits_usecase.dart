@@ -2,7 +2,6 @@ import '../entities/habit_entity.dart';
 import '../repositories/habits_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para obter hábitos do usuário
 class GetUserHabitsUseCase implements UseCase<List<HabitEntity>, String> {
   final HabitsRepository _habitsRepository;
 
@@ -18,7 +17,6 @@ class GetUserHabitsUseCase implements UseCase<List<HabitEntity>, String> {
   }
 }
 
-// Caso de uso para stream de hábitos do usuário
 class GetUserHabitsStreamUseCase implements StreamUseCase<List<HabitEntity>, String> {
   final HabitsRepository _habitsRepository;
 

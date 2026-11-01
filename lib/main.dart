@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-// Core
 import 'core/services/notification_service.dart';
 
-// Data Layer
-import 'data/datasources/firebase_auth_datasource.dart';
-import 'data/datasources/firestore_habits_datasource.dart';
-import 'data/repositories_impl/auth_repository_impl.dart';
-import 'data/repositories_impl/habits_repository_impl.dart';
+import 'data/datasources/local_auth_datasource.dart';
+import 'data/datasources/local_habits_datasource.dart';
+import 'data/repositories_impl/local_auth_repository_impl.dart';
+import 'data/repositories_impl/local_habits_repository_impl.dart';
 
-// Domain Layer - Use Cases
+import 'data/models/local_user_model.dart';
+import 'data/models/local_habit_model.dart';
+import 'data/models/local_checkin_model.dart';
+
 import 'domain/usecases/usecases.dart';
 
-// Presentation Layer
 import 'presentation/controllers/auth_controller.dart';
 import 'presentation/controllers/habits_controller.dart';
 import 'presentation/controllers/theme_controller.dart';
@@ -27,287 +24,313 @@ import 'presentation/pages/splash_page.dart';
 import 'presentation/pages/auth/login_page.dart';
 import 'presentation/pages/home/home_page.dart';
 
-import 'firebase_options.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Inicializa dados de localização para formatação de datas em português
   await initializeDateFormatting('pt_BR', null);
   
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
-  // Conectar aos emuladores em desenvolvimento
-  await _connectToFirebaseEmulator();
+  // Inicializa Hive para armazenamento local
+  await _initializeHive();
   
   runApp(const VidaPlusApp());
 }
 
-Future<void> _connectToFirebaseEmulator() async {
+late LocalAuthDatasource _authDatasource;
+late LocalHabitsDatasource _habitsDatasource;
+
+Future<void> _initializeHive() async {
   try {
-    // Para emuladores Android, usar 10.0.2.2 (IP do host no emulador)
-    // Para outras plataformas, usar localhost
-    String host = 'localhost';
+    // Inicializa Hive Flutter
+    await Hive.initFlutter();
     
-    // Detectar se está rodando no emulador Android
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      host = '10.0.2.2';
-    }
+    // Registra adapters dos modelos
+    Hive.registerAdapter(LocalUserModelAdapter());
+    Hive.registerAdapter(LocalHabitModelAdapter());
+    Hive.registerAdapter(LocalCheckInModelAdapter());
     
-    // Conectar ao emulador do Firebase Auth (porta 9099)
-    await FirebaseAuth.instance.useAuthEmulator(host, 9099);
+    // Inicializa datasources
+    _authDatasource = LocalAuthDatasource();
+    await _authDatasource.initialize();
     
-    // Conectar ao emulador do Firestore (porta 8080)
-    FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
+    _habitsDatasource = LocalHabitsDatasource();
+    await _habitsDatasource.initialize();
     
-    // Conectar ao emulador do Storage (porta 9199)
-    await FirebaseStorage.instance.useStorageEmulator(host, 9199);
-    
-    debugPrint('✅ Conectado aos emuladores Firebase:');
-    debugPrint('   🔐 Auth: $host:9099');
-    debugPrint('   📄 Firestore: $host:8080');
-    debugPrint('   📦 Storage: $host:9199');
+    debugPrint('✅ Hive initialized successfully');
+    debugPrint('   📦 Local Storage: Ready');
+    debugPrint('   🔒 User data: Stored locally');
+    debugPrint('   📋 Habits data: Stored locally');
+    debugPrint('   ✅ Check-ins data: Stored locally');
   } catch (e) {
-    // Em produção, falha silenciosa - conectará ao Firebase real
-    // Em desenvolvimento, pode indicar que emuladores não estão rodando
-    debugPrint('Erro ao conectar aos emuladores Firebase: $e');
+    debugPrint('❌ Error initializing Hive: $e');
   }
 }
 
-class VidaPlusApp extends StatelessWidget {
+class VidaPlusApp extends StatefulWidget {
   const VidaPlusApp({super.key});
 
   @override
+  State<VidaPlusApp> createState() => _VidaPlusAppState();
+}
+
+class _VidaPlusAppState extends State<VidaPlusApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
   Widget build(BuildContext context) {
-    // Configura os providers (Dependency Injection)
     return MultiProvider(
       providers: [
-        // Services
-        Provider<NotificationService>(
-          create: (_) => NotificationService(),
-        ),
-        
         // Controllers
-        ChangeNotifierProvider<ThemeController>(
-          create: (_) => ThemeController()..initialize(),
+        ChangeNotifierProvider(
+          create: (context) => ThemeController()..initialize(),
         ),
         
-        // Datasources
-        Provider<FirebaseAuthDatasource>(
-          create: (_) => FirebaseAuthDatasource(),
-        ),
-        Provider<FirestoreHabitsDatasource>(
-          create: (_) => FirestoreHabitsDatasource(),
-        ),
+                         // Auth Controller with Local Dependencies
+        ChangeNotifierProvider(
+          create: (context) {
+            // Use pre-initialized datasources
+            final authRepository = LocalAuthRepositoryImpl(datasource: _authDatasource);
+           
+            // Create use cases
+            final signInUseCase = SignInUseCase(authRepository);
+            final signUpUseCase = SignUpUseCase(authRepository);
+            final signOutUseCase = SignOutUseCase(authRepository);
+            final getCurrentUserUseCase = GetCurrentUserUseCase(authRepository);
+            final getAuthStateUseCase = GetAuthStateUseCase(authRepository);
+            final updateProfileUseCase = UpdateProfileUseCase(authRepository);
+           
+           // Create notification service
+           final notificationService = NotificationService();
+           
+           return AuthController(
+             signInUseCase: signInUseCase,
+             signUpUseCase: signUpUseCase,
+             signOutUseCase: signOutUseCase,
+             getCurrentUserUseCase: getCurrentUserUseCase,
+             getAuthStateUseCase: getAuthStateUseCase,
+             updateProfileUseCase: updateProfileUseCase,
+             notificationService: notificationService,
+             localAuthRepository: authRepository,
+           );
+         },
+       ),
         
-        // Repositories
-        Provider<AuthRepositoryImpl>(
-          create: (context) => AuthRepositoryImpl(
-            datasource: context.read<FirebaseAuthDatasource>(),
-          ),
-        ),
-        Provider<HabitsRepositoryImpl>(
-          create: (context) => HabitsRepositoryImpl(
-            datasource: context.read<FirestoreHabitsDatasource>(),
-          ),
-        ),
-        
-        // Auth Use Cases
-        Provider<SignInUseCase>(
-          create: (context) => SignInUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
-        Provider<SignUpUseCase>(
-          create: (context) => SignUpUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
-        Provider<SignOutUseCase>(
-          create: (context) => SignOutUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetCurrentUserUseCase>(
-          create: (context) => GetCurrentUserUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetAuthStateUseCase>(
-          create: (context) => GetAuthStateUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
-        Provider<UpdateProfileUseCase>(
-          create: (context) => UpdateProfileUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
-        
-        // Habits Use Cases
-        Provider<CreateHabitUseCase>(
-          create: (context) => CreateHabitUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetUserHabitsUseCase>(
-          create: (context) => GetUserHabitsUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetUserHabitsStreamUseCase>(
-          create: (context) => GetUserHabitsStreamUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        Provider<UpdateHabitUseCase>(
-          create: (context) => UpdateHabitUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        Provider<DeleteHabitUseCase>(
-          create: (context) => DeleteHabitUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        Provider<CheckInHabitUseCase>(
-          create: (context) => CheckInHabitUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetTodayCheckInsUseCase>(
-          create: (context) => GetTodayCheckInsUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetHabitsProgressUseCase>(
-          create: (context) => GetHabitsProgressUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetHabitHistoryUseCase>(
-          create: (context) => GetHabitHistoryUseCase(
-            context.read<HabitsRepositoryImpl>(),
-          ),
-        ),
-        
-        // Controllers
-        ChangeNotifierProvider<AuthController>(
-          create: (context) => AuthController(
-            signInUseCase: context.read<SignInUseCase>(),
-            signUpUseCase: context.read<SignUpUseCase>(),
-            signOutUseCase: context.read<SignOutUseCase>(),
-            getCurrentUserUseCase: context.read<GetCurrentUserUseCase>(),
-            getAuthStateUseCase: context.read<GetAuthStateUseCase>(),
-            updateProfileUseCase: context.read<UpdateProfileUseCase>(),
-            notificationService: context.read<NotificationService>(),
-          ),
-        ),
-        ChangeNotifierProvider<HabitsController>(
-          create: (context) => HabitsController(
-            createHabitUseCase: context.read<CreateHabitUseCase>(),
-            getUserHabitsUseCase: context.read<GetUserHabitsUseCase>(),
-            getUserHabitsStreamUseCase: context.read<GetUserHabitsStreamUseCase>(),
-            updateHabitUseCase: context.read<UpdateHabitUseCase>(),
-            deleteHabitUseCase: context.read<DeleteHabitUseCase>(),
-            checkInHabitUseCase: context.read<CheckInHabitUseCase>(),
-            getTodayCheckInsUseCase: context.read<GetTodayCheckInsUseCase>(),
-            getHabitsProgressUseCase: context.read<GetHabitsProgressUseCase>(),
-            getHabitHistoryUseCase: context.read<GetHabitHistoryUseCase>(),
-            notificationService: context.read<NotificationService>(),
-          ),
+                // Habits Controller with Local Dependencies
+        ChangeNotifierProxyProvider<AuthController, HabitsController>(
+          create: (context) {
+            // Use pre-initialized datasources
+            final habitsRepository = LocalHabitsRepositoryImpl(datasource: _habitsDatasource);
+           
+            // Create use cases
+            final createHabitUseCase = CreateHabitUseCase(habitsRepository);
+            final getUserHabitsUseCase = GetUserHabitsUseCase(habitsRepository);
+            final getUserHabitsStreamUseCase = GetUserHabitsStreamUseCase(habitsRepository);
+            final updateHabitUseCase = UpdateHabitUseCase(habitsRepository);
+            final deleteHabitUseCase = DeleteHabitUseCase(habitsRepository);
+            final checkInHabitUseCase = CheckInHabitUseCase(habitsRepository);
+            final getTodayCheckInsUseCase = GetTodayCheckInsUseCase(habitsRepository);
+            final getHabitsProgressUseCase = GetHabitsProgressUseCase(habitsRepository);
+            final getHabitHistoryUseCase = GetHabitHistoryUseCase(habitsRepository);
+           
+           // Create notification service
+           final notificationService = NotificationService();
+           
+           return HabitsController(
+             createHabitUseCase: createHabitUseCase,
+             getUserHabitsUseCase: getUserHabitsUseCase,
+             getUserHabitsStreamUseCase: getUserHabitsStreamUseCase,
+             updateHabitUseCase: updateHabitUseCase,
+             deleteHabitUseCase: deleteHabitUseCase,
+             checkInHabitUseCase: checkInHabitUseCase,
+             getTodayCheckInsUseCase: getTodayCheckInsUseCase,
+             getHabitsProgressUseCase: getHabitsProgressUseCase,
+             getHabitHistoryUseCase: getHabitHistoryUseCase,
+             notificationService: notificationService,
+           );
+         },
+          update: (context, authController, habitsController) => habitsController!,
         ),
       ],
-      child: Consumer2<AuthController, ThemeController>(
-        builder: (context, authController, themeController, _) {
+      child: Consumer2<ThemeController, AuthController>(
+        builder: (context, themeController, authController, child) {
+          // Escuta mudanças de autenticação para navegação automática
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!authController.isAuthenticated && _navigatorKey.currentState != null) {
+              _navigatorKey.currentState!.pushNamedAndRemoveUntil('/login', (route) => false);
+            }
+          });
+
           return MaterialApp(
-            title: 'Vida+',
-            theme: _buildLightTheme(themeController.primaryColor.color),
-            darkTheme: _buildDarkTheme(themeController.primaryColor.color),
-            themeMode: themeController.materialThemeMode,
-            home: _buildHomePage(authController),
+            navigatorKey: _navigatorKey,
+            title: 'Vida+ Offline',
             debugShowCheckedModeBanner: false,
+            themeMode: themeController.materialThemeMode,
+            theme: _buildTheme(
+              brightness: Brightness.light,
+              primaryColor: themeController.primaryColor.color,
+            ),
+            darkTheme: _buildTheme(
+              brightness: Brightness.dark,
+              primaryColor: themeController.primaryColor.color,
+            ),
+            home: const SplashPage(),
+            routes: {
+              '/login': (context) => const LoginPage(),
+              '/home': (context) => const HomePage(),
+            },
           );
         },
       ),
     );
   }
 
-  // Constrói a página inicial baseada no estado de autenticação
-  Widget _buildHomePage(AuthController authController) {
-    if (authController.isLoading) {
-      return const SplashPage();
-    }
-    
-    if (authController.isAuthenticated) {
-      return const HomePage();
-    }
-    
-    return const LoginPage();
-  }
-
-  // Tema claro
-  ThemeData _buildLightTheme(Color primaryColor) {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor, // Usa cor dinâmica
-        brightness: Brightness.light,
-      ),
-      appBarTheme: const AppBarTheme(
-        centerTitle: true,
-        elevation: 0,
-      ),
-      cardTheme: CardThemeData(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 12,
-          ),
-        ),
-      ),
+  ThemeData _buildTheme({
+    required Brightness brightness,
+    required Color primaryColor,
+  }) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: brightness,
     );
-  }
 
-  // Tema escuro
-  ThemeData _buildDarkTheme(Color primaryColor) {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor, // Usa cor dinâmica
-        brightness: Brightness.dark,
-      ),
-      appBarTheme: const AppBarTheme(
-        centerTitle: true,
+      colorScheme: colorScheme,
+      brightness: brightness,
+      fontFamily: 'Inter', // Fonte moderna
+      
+      // AppBar theme moderno
+      appBarTheme: AppBarTheme(
         elevation: 0,
+        scrolledUnderElevation: 1,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface,
+        ),
       ),
+      
+      // Card theme melhorado
       cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
       ),
+      
+      // Botões modernos
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
+          elevation: 2,
+          shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 12,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+      
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      
+      // Input decoration melhorado
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: colorScheme.surfaceContainer,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: colorScheme.outline.withValues(alpha: 0.5),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: colorScheme.primary,
+            width: 2,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      
+      // FAB moderno
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        elevation: 3,
+        highlightElevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+      
+      // Bottom navigation melhorado
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        elevation: 8,
+        backgroundColor: colorScheme.surface,
+        selectedItemColor: colorScheme.primary,
+        unselectedItemColor: colorScheme.onSurfaceVariant,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+      
+      // Dialog theme moderno
+      dialogTheme: DialogThemeData(
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        backgroundColor: colorScheme.surface,
+      ),
+      
+      // Snackbar moderno
+      snackBarTheme: SnackBarThemeData(
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: colorScheme.inverseSurface,
+        contentTextStyle: TextStyle(
+          color: colorScheme.onInverseSurface,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      
+      // Lista tile moderna
+      listTileTheme: ListTileThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
   }

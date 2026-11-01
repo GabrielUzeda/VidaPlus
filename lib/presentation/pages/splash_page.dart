@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controllers/auth_controller.dart';
 
 // Página de carregamento inicial do aplicativo
-class SplashPage extends StatelessWidget {
+class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    _navigateAfterDelay();
+  }
+
+  void _navigateAfterDelay() async {
+    // Aguarda um tempo mínimo para mostrar a splash screen
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (mounted) {
+      final authController = context.read<AuthController>();
+      
+      // Verifica se há usuário autenticado
+      if (authController.isAuthenticated) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

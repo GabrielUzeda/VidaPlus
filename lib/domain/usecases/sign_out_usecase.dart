@@ -1,7 +1,6 @@
 import '../repositories/auth_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para logout do usuário
 class SignOutUseCase implements NoParamsUseCase<void> {
   final AuthRepository _authRepository;
 

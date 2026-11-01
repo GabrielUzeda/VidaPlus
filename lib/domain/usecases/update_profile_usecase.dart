@@ -2,7 +2,6 @@ import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para atualizar perfil do usuário
 class UpdateProfileUseCase implements UseCase<UserEntity, UpdateProfileParams> {
   final AuthRepository _authRepository;
 

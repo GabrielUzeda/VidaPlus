@@ -2,7 +2,6 @@ import '../entities/habit_entity.dart';
 import '../repositories/habits_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para criar um novo hábito
 class CreateHabitUseCase implements UseCase<HabitEntity, CreateHabitParams> {
   final HabitsRepository _habitsRepository;
 

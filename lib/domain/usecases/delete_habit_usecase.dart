@@ -1,7 +1,6 @@
 import '../repositories/habits_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para deletar um hábito
 class DeleteHabitUseCase implements UseCase<void, String> {
   final HabitsRepository _habitsRepository;
 

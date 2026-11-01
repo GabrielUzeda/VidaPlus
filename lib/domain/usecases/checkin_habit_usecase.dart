@@ -2,7 +2,6 @@ import '../entities/checkin_entity.dart';
 import '../repositories/habits_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para registrar check-in de um hábito
 class CheckInHabitUseCase implements UseCase<CheckInEntity, CheckInHabitParams> {
   final HabitsRepository _habitsRepository;
 

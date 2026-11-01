@@ -5,7 +5,6 @@ import 'package:timezone/data/latest.dart' as tz;
 import '../../domain/entities/habit_entity.dart';
 import 'package:flutter/material.dart';
 
-// Serviço para gerenciar notificações locais
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -339,12 +338,19 @@ class NotificationService {
   // Cancela todas as notificações
   Future<void> cancelAllNotifications() async {
     try {
-      await _ensureInitialized();
+      // Verifica se o serviço está inicializado antes de tentar cancelar
+      if (!_isInitialized || _flutterLocalNotificationsPlugin == null) {
+        debugPrint('NotificationService not initialized, skipping notification cancellation');
+        return;
+      }
+      
       await _flutterLocalNotificationsPlugin!.cancelAll();
       
       // Limpa a lista de hábitos agendados
       _scheduledHabits.clear();
       await _saveScheduledHabits();
+      
+      debugPrint('✅ All notifications canceled successfully');
     } catch (e) {
       // Silently handle errors during notification cancellation
       // This prevents crashes during logout or app termination

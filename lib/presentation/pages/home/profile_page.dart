@@ -75,44 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           onTap: _isEditing ? _showImagePicker : null,
                           child: Stack(
                             children: [
-                              CircleAvatar(
-                                radius: 60,
-                                backgroundColor: Colors.white,
-                                child: _selectedImage != null
-                                    ? ClipOval(
-                                        child: Image.file(
-                                          _selectedImage!,
-                                          width: 120,
-                                          height: 120,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                    : user?.profileImageUrl != null && user!.profileImageUrl!.isNotEmpty
-                                        ? ClipOval(
-                                            child: Image.network(
-                                              user.profileImageUrl!,
-                                              width: 120,
-                                              height: 120,
-                                              fit: BoxFit.cover,
-                                              loadingBuilder: (context, child, loadingProgress) {
-                                                if (loadingProgress == null) return child;
-                                                return Center(
-                                                  child: CircularProgressIndicator(
-                                                    value: loadingProgress.expectedTotalBytes != null
-                                                        ? loadingProgress.cumulativeBytesLoaded /
-                                                            loadingProgress.expectedTotalBytes!
-                                                        : null,
-                                                  ),
-                                                );
-                                              },
-                                              errorBuilder: (context, error, stackTrace) {
-                                                debugPrint('❌ Error loading profile image: $error');
-                                                return _buildFallbackAvatar(user);
-                                              },
-                                            ),
-                                          )
-                                        : _buildFallbackAvatar(user),
-                              ),
+                              _buildProfileImage(user),
                               if (_isEditing)
                                 Positioned(
                                   bottom: 0,
@@ -840,14 +803,85 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Constrói avatar de fallback
-  Widget _buildFallbackAvatar(user) {
-    return Text(
-      user?.name.substring(0, 1).toUpperCase() ?? 'U',
-      style: TextStyle(
-        fontSize: 48,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).colorScheme.primary,
+  // Constrói avatar de perfil
+  Widget _buildProfileImage(user) {
+    return Container(
+      width: 120,
+      height: 120,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary,
+          width: 4,
+        ),
+        boxShadow: [
+          BoxShadow(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: user.profileImageUrl == 'guest_avatar'
+            ? Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
+                  ),
+                ),
+                child: Icon(
+                  Icons.person,
+                  size: 60,
+                  color: Colors.white,
+                ),
+              )
+            : user.profileImageUrl.startsWith('http')
+                ? Image.network(
+                    user.profileImageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.secondary,
+                            ],
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.person,
+                          size: 60,
+                          color: Colors.white,
+                        ),
+                      );
+                    },
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.secondary,
+                        ],
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      size: 60,
+                      color: Colors.white,
+                    ),
+                  ),
       ),
     );
   }

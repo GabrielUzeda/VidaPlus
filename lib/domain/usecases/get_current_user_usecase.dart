@@ -2,7 +2,6 @@ import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 import 'base_usecase.dart';
 
-// Caso de uso para obter o usuário atual
 class GetCurrentUserUseCase implements NoParamsUseCase<UserEntity?> {
   final AuthRepository _authRepository;
 
@@ -14,7 +13,6 @@ class GetCurrentUserUseCase implements NoParamsUseCase<UserEntity?> {
   }
 }
 
-// Caso de uso para stream do estado de autenticação
 class GetAuthStateUseCase implements NoParamsStreamUseCase<UserEntity?> {
   final AuthRepository _authRepository;
 
